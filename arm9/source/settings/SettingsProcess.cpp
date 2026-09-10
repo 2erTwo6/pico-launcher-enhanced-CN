@@ -45,7 +45,8 @@ void SettingsProcess::Run()
     _settingsController = std::make_unique<SettingsController>(&_appSettingsService, &_ioTaskQueue);
     _settingsController->Initialize();
 
-    auto viewModel = SharedPtr<ThemeListViewModel>::MakeShared(_settingsController.get());
+    auto viewModel = SharedPtr<ThemeListViewModel>::MakeShared(_settingsController.get(),
+        _appSettingsService.GetAppSettings().theme);
     _themeListBottomView = ThemeListBottomView::CreateShared(viewModel,
         &_theme->GetMaterialColorScheme(), _theme->GetRomBrowserViewFactory(),
         _theme->GetThemeFileIconFactory(), &_vblankTextureLoader);

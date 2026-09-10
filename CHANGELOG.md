@@ -4,6 +4,10 @@
 
 ### [Unreleased]
 
+#### Changed
+- The theme selector opens on the theme you are using instead of the first one in the list,
+  so a long list no longer has to be scrolled to find it (fixes #17).
+
 ### [enhanced-v1.7.0]
 
 #### Added

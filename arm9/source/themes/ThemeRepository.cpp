@@ -1,4 +1,5 @@
 #include "common.h"
+#include <string.h>
 #include "romBrowser/FileType/NullFileTypeProvider.h"
 #include "romBrowser/SdFolderFactory.h"
 #include "ThemeRepository.h"
@@ -24,4 +25,20 @@ std::unique_ptr<ThemeInfo> ThemeRepository::LoadThemeInfo(u32 themeIndex) const
     }
 
     return _themeInfoFactory.CreateFromThemeFolder(_themeFolders[themeIndex]->GetFileName());
+}
+
+int ThemeRepository::FindThemeIndex(const TCHAR* folderName) const
+{
+    if (folderName == nullptr)
+    {
+        return -1;
+    }
+    for (u32 i = 0; i < _numberOfThemes; i++)
+    {
+        if (strcasecmp(folderName, _themeFolders[i]->GetFileName()) == 0)
+        {
+            return i;
+        }
+    }
+    return -1;
 }
