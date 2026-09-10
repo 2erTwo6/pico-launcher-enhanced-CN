@@ -4,6 +4,8 @@
 
 ### [Unreleased]
 
+### [enhanced-v1.7.0]
+
 #### Added
 - Hold START for about half a second to save a screenshot of both screens to
   `/_pico/screenshots`, as two BMP files that share a number. A short message on the lower
