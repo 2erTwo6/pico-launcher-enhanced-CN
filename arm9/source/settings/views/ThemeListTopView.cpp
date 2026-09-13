@@ -13,7 +13,7 @@ ThemeListTopView::ThemeListTopView(SharedPtr<ThemeListViewModel> viewModel, cons
     , _noPreviewLabel(Label2DView::CreateShared(64, 16, 25, fontRepository->GetFont(FontType::Medium11)))
 {
     _noPreviewLabel->SetHorizontalAlignment(Alignment::Center);
-    _noPreviewLabel->SetText("No preview");
+    _noPreviewLabel->SetText("无预览");
     _noPreviewLabel->SetPosition(128 - 32, 96 - 8);
     _noPreviewLabel->SetBackgroundColor(materialColorScheme->inverseOnSurface);
     _noPreviewLabel->SetForegroundColor(materialColorScheme->onSurfaceVariant);

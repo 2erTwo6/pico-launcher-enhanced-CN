@@ -1,6 +1,19 @@
 # Tools
 The `tools/` folder contains helper scripts that run on a PC. They require Python 3, and all except `make_night_bg.py` also need [Pillow](https://pypi.org/project/pillow/) (`pip install pillow`). Run them from the repository root.
 
+## make_chinese_bitmap_font.py
+Rebuilds `arm9/data/BitmapSong-9pt.nft2`, the launcher's Simplified Chinese
+dot-matrix font, from WenQuanYi Bitmap Song 9pt. Python 3 and `pcf2bdf` are
+required (on Debian/Ubuntu: `apt install xfonts-wqy pcf2bdf`). The script adds
+printable ASCII, the full GB2312 set, CJK punctuation and fullwidth forms.
+
+```
+python3 tools/make_chinese_bitmap_font.py --bdf /usr/share/fonts/X11/misc/wenquanyi_9pt.pcf
+```
+
+The generated font is already committed, so a normal `make` does not run this
+script. See [`licenses/wqy-bitmap-song.txt`](../licenses/wqy-bitmap-song.txt).
+
 ## png2icon.py
 Prepares the cartridge banner icon used at build time (`GAME_ICON`, embedded by `ndstool -b`): fits any image into a 32x32 PNG with at most 15 opaque colors plus alpha transparency, the limits ndstool accepts.
 

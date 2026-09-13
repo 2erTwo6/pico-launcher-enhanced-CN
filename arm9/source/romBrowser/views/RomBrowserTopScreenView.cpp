@@ -56,7 +56,7 @@ RomBrowserTopScreenView::RomBrowserTopScreenView(
     u32 gameCount = _viewModel->GetFileInfoManager().GetGameCount();
     if (gameCount > 0 && !_gameCountHidden)
     {
-        mini_snprintf(_gameCountText, sizeof(_gameCountText), "%u game%s", gameCount, gameCount == 1 ? "" : "s");
+        mini_snprintf(_gameCountText, sizeof(_gameCountText), "%u个游戏", gameCount);
         _gameCountLabel = Label2DView::CreateShared(96, 16, 15, fontRepository->GetFont(FontType::Medium10));
         _gameCountLabel->SetText(_gameCountText);
         // Draw() puts a chip behind each strip cluster so the strip stays readable
@@ -165,7 +165,7 @@ void RomBrowserTopScreenView::Update()
     {
         _selectedFavorite = false;
         _selectedCompleted = false;
-        char info[24];
+        char info[48];
         info[0] = 0;
         if (selectedItem >= 0)
         {
@@ -184,37 +184,33 @@ void RomBrowserTopScreenView::Update()
                 {
                     if (entry->playMinutes >= 60)
                     {
-                        mini_snprintf(info, sizeof(info), "%ux %uh%02u", entry->launchCount,
+                        mini_snprintf(info, sizeof(info), "%u次 %u时%02u分", entry->launchCount,
                             entry->playMinutes / 60, entry->playMinutes % 60);
                     }
                     else if (entry->playMinutes > 0)
                     {
-                        mini_snprintf(info, sizeof(info), "%ux %um", entry->launchCount,
+                        mini_snprintf(info, sizeof(info), "%u次 %u分", entry->launchCount,
                             entry->playMinutes);
                     }
                     else if (strlen(entry->lastPlayed.GetString()) >= 10)
                     {
-                        // stored as "YYYY-MM-DD HH:MM", shown as "3x · 16 Jul" (a bare
-                        // "16/07" reads like a fraction to new users). The separator is
-                        // the middle dot U+00B7, which the Medium10 font provides.
-                        static const char* const sMonthNames[12] = { "Jan", "Feb", "Mar", "Apr",
-                            "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+                        // stored as "YYYY-MM-DD HH:MM", shown as "3次 · 7月16日"
                         const char* lastPlayed = entry->lastPlayed.GetString();
                         u32 month = (lastPlayed[5] - '0') * 10 + (lastPlayed[6] - '0');
                         u32 day = (lastPlayed[8] - '0') * 10 + (lastPlayed[9] - '0');
-                        if (month >= 1 && month <= 12)
+                        if (month >= 1 && month <= 12 && day >= 1 && day <= 31)
                         {
-                            mini_snprintf(info, sizeof(info), "%ux · %u %s", entry->launchCount,
-                                day, sMonthNames[month - 1]);
+                            mini_snprintf(info, sizeof(info), "%u次 · %u月%u日", entry->launchCount,
+                                month, day);
                         }
                         else
                         {
-                            mini_snprintf(info, sizeof(info), "%ux", entry->launchCount);
+                            mini_snprintf(info, sizeof(info), "%u次", entry->launchCount);
                         }
                     }
                     else
                     {
-                        mini_snprintf(info, sizeof(info), "%ux", entry->launchCount);
+                        mini_snprintf(info, sizeof(info), "%u次", entry->launchCount);
                     }
                 }
             }
@@ -237,6 +233,41 @@ void RomBrowserTopScreenView::Update()
 // kLetterHoldFrames is counted in Update() calls (one a frame), so ~2s at 60 fps.
 static constexpr int kLetterHoldFrames = 120;
 
+// Copy the first display character of a UTF-8 file name, so a Chinese folder
+// shows the actual first Han character on an initial jump instead of leaving
+// the string truncated inside a multibyte sequence.
+static void CopyFirstDisplayCharacter(const char* fileName, char* out, u32 outSize)
+{
+    out[0] = 0;
+    if (!fileName || !fileName[0] || outSize < 2)
+        return;
+
+    unsigned char c0 = (unsigned char)fileName[0];
+    if ((c0 & 0x80) == 0)
+    {
+        out[0] = (char)toupper(c0);
+        out[1] = 0;
+    }
+    else if ((c0 & 0xE0) == 0xC0 && fileName[1] && outSize >= 3)
+    {
+        out[0] = fileName[0];
+        out[1] = fileName[1];
+        out[2] = 0;
+    }
+    else if ((c0 & 0xF0) == 0xE0 && fileName[1] && fileName[2] && outSize >= 4)
+    {
+        out[0] = fileName[0];
+        out[1] = fileName[1];
+        out[2] = fileName[2];
+        out[3] = 0;
+    }
+    else
+    {
+        out[0] = '?';
+        out[1] = 0;
+    }
+}
+
 void RomBrowserTopScreenView::UpdateSortLetterChip(int selectedItem)
 {
     // Drain the jump flag every frame, before the no-chip guard below. The flag
@@ -251,9 +282,9 @@ void RomBrowserTopScreenView::UpdateSortLetterChip(int selectedItem)
 
     if (jumped && selectedItem >= 0)
     {
-        char initial = (char)toupper((unsigned char)
-            _viewModel->GetFileInfoManager().GetItem(selectedItem).GetFileName()[0]);
-        char letter[2] = { initial, 0 };
+        char letter[8];
+        CopyFirstDisplayCharacter(
+            _viewModel->GetFileInfoManager().GetItem(selectedItem).GetFileName(), letter, sizeof(letter));
         _gameCountLabel->SetText(letter);
         _letterHoldFrames = kLetterHoldFrames;
     }

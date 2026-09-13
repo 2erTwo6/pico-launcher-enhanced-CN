@@ -35,13 +35,13 @@ RecentsBottomSheetView::RecentsBottomSheetView(SharedPtr<RecentsViewModel> viewM
 {
     if (_viewModel->GetKind() == GameListKind::Recents)
     {
-        _titleLabel->SetText(u"Recent games");
-        _emptyLabel->SetText(u"Nothing played yet.");
+        _titleLabel->SetText(u"最近游戏");
+        _emptyLabel->SetText(u"还没有玩过游戏");
     }
     else
     {
-        _titleLabel->SetText(u"Favorite games");
-        _emptyLabel->SetText(u"No favorites yet. Press X on a game.");
+        _titleLabel->SetText(u"收藏游戏");
+        _emptyLabel->SetText(u"还没有收藏，按 X 键收藏游戏");
     }
     AddChildTail(_titleLabel.GetPointer());
     if (_viewModel->GetItemCount() == 0)

@@ -64,7 +64,7 @@ private:
     // On an L/R jump the game-count chip briefly shows the letter landed on, so
     // the jump is not disorienting; _gameCountText is the count to put back after
     // the hold, and _letterHoldFrames counts it down.
-    char _gameCountText[16] = {};
+    char _gameCountText[32] = {};
     int _letterHoldFrames = 0;
 
     RomBrowserTopScreenView(SharedPtr<RomBrowserViewModel> viewModel,

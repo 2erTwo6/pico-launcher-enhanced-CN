@@ -23,7 +23,7 @@
 #define MIN_WIDTH           72
 #define MAX_WIDTH           232
 
-#define TEXT_HEIGHT         12
+#define TEXT_HEIGHT         14
 #define TEXT_WIDTH          (MAX_WIDTH - 2 * TEXT_PADDING_X)
 
 // The label rounds its texture up to the next power of two, so asking for more

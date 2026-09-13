@@ -7,7 +7,7 @@
 class AppSettings
 {
 public:
-    String<char, 16> language = "english";
+    String<char, 16> language = "chinese";
     String<char, 64> theme = "material";
     String<char, 256> lastUsedFilePath = "";
     /// @brief DS Lite backlight level (0 = low .. 3 = max), or -1 to leave

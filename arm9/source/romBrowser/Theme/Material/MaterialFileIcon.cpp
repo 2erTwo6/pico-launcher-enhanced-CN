@@ -13,13 +13,34 @@ MaterialFileIcon::MaterialFileIcon(const TCHAR* name, const MaterialColorScheme*
     const IFontRepository* fontRepository)
     : _materialColorScheme(materialColorScheme), _fontRepository(fontRepository)
 {
-    int i;
-    for (i = 0; i < 3; i++)
+    // Decode up to three UTF-8 characters, so Chinese folder and file names
+    // show their first Han characters in the Material grid icon instead of the
+    // raw bytes.
+    const unsigned char* ptr = (const unsigned char*)name;
+    int i = 0;
+    while (i < 3 && *ptr)
     {
-        TCHAR c = name[i];
-        if (c == 0)
-            break;
-        _displayName[i] = c;
+        u16 c;
+        if ((*ptr & 0x80) == 0)
+        {
+            c = *ptr++;
+        }
+        else if ((*ptr & 0xE0) == 0xC0 && ptr[1] != 0)
+        {
+            c = ((*ptr & 0x1F) << 6) | (ptr[1] & 0x3F);
+            ptr += 2;
+        }
+        else if ((*ptr & 0xF0) == 0xE0 && ptr[1] != 0 && ptr[2] != 0)
+        {
+            c = ((*ptr & 0x0F) << 12) | ((ptr[1] & 0x3F) << 6) | (ptr[2] & 0x3F);
+            ptr += 3;
+        }
+        else
+        {
+            c = '?';
+            ptr++;
+        }
+        _displayName[i++] = c;
     }
     _displayName[i] = 0;
 }

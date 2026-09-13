@@ -85,7 +85,7 @@ DisplaySettingsBottomSheetView::DisplaySettingsBottomSheetView(
     , _brightnessLabel(Label2DView::CreateShared(64, 16, 25, fontRepository->GetFont(FontType::Regular10)))
     , _materialColorScheme(materialColorScheme)
 {
-    _titleLabel->SetText(u"Display Settings");
+    _titleLabel->SetText(u"显示设置");
     AddChildTail(_titleLabel.GetPointer());
 
     _themeButton->SetAction([] (IconButtonView*, void* arg)
@@ -101,11 +101,11 @@ DisplaySettingsBottomSheetView::DisplaySettingsBottomSheetView(
     }, this);
     AddChildTail(_hideEmptyFoldersButton.GetPointer());
 
-    _layoutLabel->SetText(u"Layout");
+    _layoutLabel->SetText(u"布局");
     AddChildTail(_layoutLabel.GetPointer());
-    _sortingLabel->SetText(u"Sorting");
+    _sortingLabel->SetText(u"排序");
     AddChildTail(_sortingLabel.GetPointer());
-    _brightnessLabel->SetText(u"Light");
+    _brightnessLabel->SetText(u"亮度");
     AddChildTail(_brightnessLabel.GetPointer());
 
     for (auto& layoutOption : _layoutOptions)

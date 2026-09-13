@@ -61,12 +61,12 @@ CheatsBottomSheetView::CheatsBottomSheetView(SharedPtr<CheatsViewModel> viewMode
     , _fontRepository(fontRepository)
     , _focusManager(focusManager)
 {
-    _titleLabel->SetText(u"Cheats");
-    _secondaryLabel->SetText(u"No cheats found.");
+    _titleLabel->SetText(u"金手指");
+    _secondaryLabel->SetText(u"未找到金手指");
     _secondaryLabel->SetEllipsisStyle(LabelView::EllipsisStyle::Ellipsis);
     _descriptionLabel->SetEllipsisStyle(LabelView::EllipsisStyle::Marquee);
     _descriptionLabel->SetText(u"");
-    _promptsLabel->SetText(u"X: all off");
+    _promptsLabel->SetText(u"X:全关");
     AddChildTail(_titleLabel.GetPointer());
     AddChildTail(_secondaryLabel.GetPointer());
     AddChildTail(_descriptionLabel.GetPointer());

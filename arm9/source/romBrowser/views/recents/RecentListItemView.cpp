@@ -39,15 +39,15 @@ void RecentListItemView::SetEntry(const GameDataEntry* entry, int index)
     _entry = entry;
     _index = index;
     _nameLabel->SetText(entry->fileName.GetString());
-    char subtitle[16];
+    char subtitle[32];
     if (_viewModel->GetKind() == GameListKind::Favorites)
     {
         // favorites show accumulated play time (same format as the top strip)
         u32 minutes = entry->playMinutes;
         if (minutes >= 60)
-            mini_snprintf(subtitle, sizeof(subtitle), "%uh%02u", minutes / 60, minutes % 60);
+            mini_snprintf(subtitle, sizeof(subtitle), "%u时%02u分", minutes / 60, minutes % 60);
         else if (minutes > 0)
-            mini_snprintf(subtitle, sizeof(subtitle), "%um", minutes);
+            mini_snprintf(subtitle, sizeof(subtitle), "%u分", minutes);
         else
             subtitle[0] = 0; // never played: no time to show
     }

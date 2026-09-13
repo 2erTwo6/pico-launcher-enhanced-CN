@@ -5,6 +5,9 @@
 ### [Unreleased]
 
 #### Added
+- The launcher UI is now in Simplified Chinese, including all numerals and Latin
+  text, drawn with a WenQuanYi Bitmap Song dot-matrix font. The old proportional
+  Japanese font files are replaced by a single 9pt bitmap `.nft2` font in `arm9/data`.
 - Hold START for about half a second to save a screenshot of both screens to
   `/_pico/screenshots`, as two BMP files that share a number. A short message on the lower
   screen confirms the write, or tells you it could not save. Sent upstream as PR #85.

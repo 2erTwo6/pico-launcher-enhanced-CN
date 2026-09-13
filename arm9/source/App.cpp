@@ -545,13 +545,13 @@ void App::Update()
         switch (Screenshot::TakeResult())
         {
             case Screenshot::Result::Saved:
-                _toast->Show("Screenshot saved");
+                _toast->Show("截图已保存");
                 break;
             case Screenshot::Result::Failed:
-                _toast->Show("Couldn't save the screenshot");
+                _toast->Show("无法保存截图");
                 break;
             case Screenshot::Result::Busy:
-                _toast->Show("Still saving the last one");
+                _toast->Show("上一张截图仍在保存");
                 break;
             case Screenshot::Result::None:
                 break;

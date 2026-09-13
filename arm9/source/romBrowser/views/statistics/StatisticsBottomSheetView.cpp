@@ -24,50 +24,47 @@ StatisticsBottomSheetView::StatisticsBottomSheetView(SharedPtr<StatisticsViewMod
     , _titleLabel(Label2DView::CreateShared(128, 16, 25, fontRepository->GetFont(FontType::Medium11)))
     , _materialColorScheme(materialColorScheme)
 {
-    _titleLabel->SetText(u"Statistics");
+    _titleLabel->SetText(u"统计");
     AddChildTail(_titleLabel.GetPointer());
 
     char text[144];
     if (_viewModel->GetPlayedCount() == 0 && _viewModel->GetFavoriteCount() == 0 &&
         _viewModel->GetCompletedCount() == 0)
     {
-        AddLine(fontRepository, FontType::Regular10, "Nothing played yet.");
+        AddLine(fontRepository, FontType::Regular10, "还没有玩过游戏");
     }
     else
     {
         if (_viewModel->GetCompletedCount() > 0)
         {
-            mini_snprintf(text, sizeof(text), "%u game%s played, %u favorite%s, %u completed",
-                _viewModel->GetPlayedCount(), _viewModel->GetPlayedCount() == 1 ? "" : "s",
-                _viewModel->GetFavoriteCount(), _viewModel->GetFavoriteCount() == 1 ? "" : "s",
+            mini_snprintf(text, sizeof(text), "玩过%u个，收藏%u个，通关%u个",
+                _viewModel->GetPlayedCount(), _viewModel->GetFavoriteCount(),
                 _viewModel->GetCompletedCount());
         }
         else
         {
-            mini_snprintf(text, sizeof(text), "%u game%s played, %u favorite%s",
-                _viewModel->GetPlayedCount(), _viewModel->GetPlayedCount() == 1 ? "" : "s",
-                _viewModel->GetFavoriteCount(), _viewModel->GetFavoriteCount() == 1 ? "" : "s");
+            mini_snprintf(text, sizeof(text), "玩过%u个，收藏%u个",
+                _viewModel->GetPlayedCount(), _viewModel->GetFavoriteCount());
         }
         AddLine(fontRepository, FontType::Regular10, text);
 
         u32 playMinutes = _viewModel->GetTotalPlayMinutes();
         if (playMinutes > 0)
         {
-            mini_snprintf(text, sizeof(text), "%u launch%s, %uh %02um played",
-                _viewModel->GetTotalLaunches(), _viewModel->GetTotalLaunches() == 1 ? "" : "es",
-                playMinutes / 60, playMinutes % 60);
+            mini_snprintf(text, sizeof(text), "启动%u次，共玩%u时%02u分",
+                _viewModel->GetTotalLaunches(), playMinutes / 60, playMinutes % 60);
         }
         else
         {
-            mini_snprintf(text, sizeof(text), "%u launch%s in total",
-                _viewModel->GetTotalLaunches(), _viewModel->GetTotalLaunches() == 1 ? "" : "es");
+            mini_snprintf(text, sizeof(text), "共启动%u次",
+                _viewModel->GetTotalLaunches());
         }
         AddLine(fontRepository, FontType::Regular10, text);
 
         for (u32 t = 0; t < _viewModel->GetTopCount(); t++)
         {
             const auto& entry = _viewModel->GetTopEntry(t);
-            mini_snprintf(text, sizeof(text), "%u. %s (%ux)",
+            mini_snprintf(text, sizeof(text), "%u. %s (%u次)",
                 t + 1, entry.fileName.GetString(), entry.launchCount);
             AddLine(fontRepository, FontType::Medium7_5, text);
         }
@@ -75,7 +72,7 @@ StatisticsBottomSheetView::StatisticsBottomSheetView(SharedPtr<StatisticsViewMod
         const char* lastPlayed = _viewModel->GetLastPlayed().lastPlayed.GetString();
         if (strlen(lastPlayed) >= 16)
         {
-            mini_snprintf(text, sizeof(text), "Last: %s (%c%c/%c%c %c%c:%c%c)",
+            mini_snprintf(text, sizeof(text), "最近：%s (%c%c/%c%c %c%c:%c%c)",
                 _viewModel->GetLastPlayed().fileName.GetString(),
                 lastPlayed[8], lastPlayed[9], lastPlayed[5], lastPlayed[6],
                 lastPlayed[11], lastPlayed[12], lastPlayed[14], lastPlayed[15]);

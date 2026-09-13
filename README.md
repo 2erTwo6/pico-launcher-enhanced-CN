@@ -6,6 +6,8 @@
 
 A feature fork of [Pico Launcher](https://github.com/LNH-team/pico-launcher) by the LNH team, adding library features inspired by modern consoles — favorites, play stats, recently played, and more — while staying fully compatible with stock SD cards: it is a drop-in `_picoboot.nds` replacement, and all upstream features remain intact.
 
+[简体中文说明](README.zh-CN.md)
+
 ![Cover flow in the Material theme: a favorite, completed game, with the jump-by-initial letter in the top-left chip](docs/images/enhanced/Coverflow.png)
 ![Icon grid in the Material theme, with the highlighted game's cover on the top screen](docs/images/enhanced/Grid.png)
 ![A custom theme: the game count and launch info stay readable on their own backdrop](docs/images/enhanced/CustomTheme.png)
@@ -40,6 +42,16 @@ Everything upstream Pico Launcher offers (display modes, [custom icons, banners 
 - **Per-file game data** — favorites, completed marks and play stats belong to the ROM file, so two copies of a game never share them
 
 See [Enhanced features](docs/Enhanced.md) for details on each feature.
+
+## Chinese localization and bitmap font
+
+The launcher interface is localized to Simplified Chinese. Every glyph shown by
+the launcher — Chinese, English letters, digits and punctuation — comes from the
+same 9pt WenQuanYi Bitmap Song dot-matrix font, converted to Nitro Font 2 in
+`arm9/data/BitmapSong-9pt.nft2`. The conversion script is
+`tools/make_chinese_bitmap_font.py`; the font is distributed under the GNU GPL
+v2 with the font embedding exception, see
+[`licenses/wqy-bitmap-song.txt`](licenses/wqy-bitmap-song.txt).
 
 ## Installation
 
@@ -118,6 +130,8 @@ Bug reports, ideas and pull requests are welcome — see [CONTRIBUTING.md](CONTR
 ## License
 
 Icons by [icons8](https://icons8.com/)
+
+The dot-matrix font in `arm9/data/BitmapSong-9pt.nft2` is derived from WenQuanYi Bitmap Song; see [`licenses/wqy-bitmap-song.txt`](licenses/wqy-bitmap-song.txt).
 
 This project is licensed under the Zlib license. For details, see `LICENSE.txt`.
 

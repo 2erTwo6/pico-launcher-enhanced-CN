@@ -22,10 +22,7 @@
 #include "rng/RandomGenerator.h"
 #include "rng/LinearCongruentialGenerator.h"
 #include "rng/ThreadSafeRandomGenerator.h"
-#include "NotoSansJP-Regular-10_nft2.h"
-#include "NotoSansJP-Medium-7_5_nft2.h"
-#include "NotoSansJP-Medium-10_nft2.h"
-#include "NotoSansJP-Medium-11_nft2.h"
+#include "BitmapSong-9pt_nft2.h"
 #include "gui/font/nitroFont2.h"
 #include "picoLoaderBootstrap.h"
 #include "rtcIpc.h"
@@ -225,10 +222,8 @@ int main(int argc, char* argv[])
     // todo: make sure _pico folder exists
     // maybe warn if important files are missing as well?
 
-    nft2_unpack((nft2_header_t*)NotoSansJP_Regular_10_nft2);
-    nft2_unpack((nft2_header_t*)NotoSansJP_Medium_10_nft2);
-    nft2_unpack((nft2_header_t*)NotoSansJP_Medium_11_nft2);
-    nft2_unpack((nft2_header_t*)NotoSansJP_Medium_7_5_nft2);
+    // One dot-matrix bitmap font is shared by every FontType; unpack it once.
+    nft2_unpack((nft2_header_t*)BitmapSong_9pt_nft2);
 
     gProcessManager.Goto<App>();
     gProcessManager.MainLoop();
