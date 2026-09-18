@@ -19,7 +19,7 @@ A feature fork of [Pico Launcher](https://github.com/LNH-team/pico-launcher) by 
 Everything upstream Pico Launcher offers (display modes, [custom icons, banners & covers](docs/Customization.md) for games *and folders*, [themes](docs/Themes.md), [cheats](docs/Cheats.md), [file associations](docs/FileAssociations.md) — see [Usage](docs/Usage.md)), plus:
 
 - **Jump by initial** — press L or R to jump to the next initial letter in a folder sorted by name; the letter you land on shows for a moment at the bottom of the touch screen
-- **Game count** of the current folder on the top screen
+- **Game count** of the current folder, at the top of the statistics panel
 - **Random game launch** with SELECT + A
 - **Favorites** — press X on a game; a heart shows on the top screen
 - **Completed games** — hold X on a game; a green check shows on the top screen
@@ -28,13 +28,13 @@ Everything upstream Pico Launcher offers (display modes, [custom icons, banners 
 - **Recently played panel** — clock button in the app bar; tapping an entry jumps to the game
 - **Statistics panel** — hold the clock button for totals and most-played games
 - **Screenshots** — hold START for about half a second to save both screens to `/_pico/screenshots`
-- **Per-game launch tracking** — launch count and last-played date on the top screen
+- **Per-game launch tracking** — launch count and last-played date, kept per game and shown in the recently played and statistics panels
 - **Approximate play time** — per game and in the statistics panel
 - **Game deletion** — trash button with confirmation; removes the ROM and its save
 - **Brightness control** — set the DS Lite's backlight level from display settings
 - **Hide empty folders** — optional; folders with nothing playable inside are left out of the listing
 - **Cheats list that reads better** — the list wraps around at both ends, and X turns every cheat off at once
-- **Top strip readable on any theme** — the game count and launch info sit on their own backdrop, and a [custom theme](docs/Themes.md) can move or hide them
+- **Top strip readable on any theme** — the favorite and completed markers on the top screen sit on their own backdrop, and a [custom theme](docs/Themes.md) can move or hide them
 - **Per-folder background music** — drop a `bgm.bcstm` inside a folder
 - **Time-of-day theme backgrounds** — optional night variants shown from 20:00 to 6:59
 - **Per-file game data** — favorites, completed marks and play stats belong to the ROM file, so two copies of a game never share them

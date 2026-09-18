@@ -51,7 +51,6 @@ public:
 
     virtual Point GetTopCoverPosition() const = 0;
 
-    virtual TopStripElementLayout GetTopGameCountLayout() const = 0;
     virtual TopStripElementLayout GetTopLaunchInfoLayout() const = 0;
 };
 

@@ -62,7 +62,7 @@ Marks, play counts and play time all belong to the ROM file, so what the top scr
 Hold SELECT and press A to launch a random game from the folder you are currently viewing. With the favorites filter active, it picks a random favorite. SELECT on its own does nothing, so the DSi brightness shortcut (SELECT + volume) stays free.
 
 ## Launch tracking and play time
-Every launch is recorded automatically. The top-right of the top screen shows the highlighted game's launch count together with its total play time (`3x 2h05`), or with the date it was last played (`3x 16/07`, day/month) when no play time has been recorded yet.
+Every launch is recorded automatically. The launch count and play time used to show at the top-right of the top screen (`3x 2h05`, or `3x · 16 Jul` before any play time was recorded); that text is switched off in this version because the play time overstates, as explained below. The data is still kept, and the favorite and completed markers still show in that corner.
 
 Play time is approximate: a session starts when a game is launched and ends the next time the launcher boots. Because of that:
 - Sessions longer than 6 hours are discarded — that was a power-off, not a play session.

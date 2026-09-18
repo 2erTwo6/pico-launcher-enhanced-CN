@@ -71,11 +71,6 @@ public:
         return Point(75, 18);
     }
 
-    TopStripElementLayout GetTopGameCountLayout() const override
-    {
-        return { Point(4, 2), false };
-    }
-
     TopStripElementLayout GetTopLaunchInfoLayout() const override
     {
         return { Point(252, 2), false };

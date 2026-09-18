@@ -28,6 +28,17 @@ StatisticsBottomSheetView::StatisticsBottomSheetView(SharedPtr<StatisticsViewMod
     AddChildTail(_titleLabel.GetPointer());
 
     char text[144];
+
+    // The count of the folder being browsed heads the panel. It used to sit in
+    // a pill at the top-left of the top screen, and moved here when that corner
+    // was cleared.
+    u32 folderGames = _viewModel->GetFolderGameCount();
+    if (folderGames > 0)
+    {
+        mini_snprintf(text, sizeof(text), "%u game%s in this folder", folderGames, folderGames == 1 ? "" : "s");
+        AddLine(fontRepository, FontType::Regular10, text);
+    }
+
     if (_viewModel->GetPlayedCount() == 0 && _viewModel->GetFavoriteCount() == 0 &&
         _viewModel->GetCompletedCount() == 0)
     {

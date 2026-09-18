@@ -14,7 +14,6 @@ struct CustomThemeInfo
     CustomTopTextElementInfo topBannerTextLine2Info;
     CustomTopTextElementInfo topFileNameTextInfo;
     CustomTopCoverInfo topCoverInfo;
-    CustomTopStripElementInfo topGameCountInfo;
     CustomTopStripElementInfo topLaunchInfoInfo;
 
     CustomBottomIconInfo gridIconInfo;

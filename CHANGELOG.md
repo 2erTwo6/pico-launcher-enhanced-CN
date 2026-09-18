@@ -10,6 +10,12 @@
 - The letter an L/R jump lands on now appears for a moment at the bottom of the touch
   screen, the same way the screenshot message does, instead of replacing the game count on
   the top screen. It shows on every theme, including the ones that hide the count.
+- The game count left the top-left of the top screen and heads the statistics panel instead,
+  as the count of the folder you are in. Themes that position or hide `topGameCount` keep
+  loading; the key is ignored now (#18).
+- The launch count and play time at the top-right of the top screen are switched off; the
+  favorite and completed markers stay. The time counted the clock while a game was open, not
+  play (#9), so it overstated. The code is kept behind a switch for when the counting is fixed.
 
 ### [enhanced-v1.7.0]
 

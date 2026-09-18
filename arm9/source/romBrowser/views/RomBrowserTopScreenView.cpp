@@ -24,6 +24,12 @@
 #include "stripChipBg.h"
 #include "RomBrowserTopScreenView.h"
 
+// The launch info text next to the markers - "3x 1h20", "3x · 16 Jul" - is
+// switched off for now, and kept behind this rather than removed: the time it
+// shows is the clock running while a game was open, not time played (issue #9),
+// so it overstates. The favorite heart and completed check stay on screen.
+#define SHOW_TOP_LAUNCH_INFO_TEXT 0
+
 RomBrowserTopScreenView::RomBrowserTopScreenView(
     SharedPtr<RomBrowserViewModel> viewModel,
     const RomBrowserDisplayMode* displayMode,
@@ -39,34 +45,15 @@ RomBrowserTopScreenView::RomBrowserTopScreenView(
 {
     AddChildTail(_fileInfoView.GetPointer());
 
-    // the strip is positioned by the theme (top-left corner for the game count,
-    // top-right corner for the launch info) so a custom theme can move or hide
-    // it away from its own top art; clamp to the screen so a malformed theme.json
-    // can't place the OBJs at coordinates that wrap in OAM
-    auto gameCountLayout = romBrowserViewFactory->GetTopGameCountLayout();
-    _gameCountHidden = gameCountLayout.hidden;
-    _gameCountPosition = Point(std::clamp(gameCountLayout.position.x, 0, 256),
-        std::clamp(gameCountLayout.position.y, 0, 192));
+    // the strip is positioned by the theme (top-right corner for the launch
+    // info) so a custom theme can move or hide it away from its own top art;
+    // clamp to the screen so a malformed theme.json can't place the OBJs at
+    // coordinates that wrap in OAM. The game count that used to sit in the
+    // top-left corner now opens the statistics panel instead.
     auto launchInfoLayout = romBrowserViewFactory->GetTopLaunchInfoLayout();
     _launchInfoHidden = launchInfoLayout.hidden;
     _launchInfoPosition = Point(std::clamp(launchInfoLayout.position.x, 0, 256),
         std::clamp(launchInfoLayout.position.y, 0, 192));
-
-    u32 gameCount = _viewModel->GetFileInfoManager().GetGameCount();
-    if (gameCount > 0 && !_gameCountHidden)
-    {
-        char text[16];
-        mini_snprintf(text, sizeof(text), "%u game%s", gameCount, gameCount == 1 ? "" : "s");
-        _gameCountLabel = Label2DView::CreateShared(96, 16, 15, fontRepository->GetFont(FontType::Medium10));
-        _gameCountLabel->SetText(text);
-        // Draw() puts a chip behind each strip cluster so the strip stays readable
-        // over any theme art; the label sits 6px in from the pill's left edge and
-        // 2px down from its top
-        _gameCountLabel->SetPosition(_gameCountPosition.x + 6, _gameCountPosition.y + 2);
-        _gameCountLabel->SetBackgroundColor(materialColorScheme->surfaceBright);
-        _gameCountLabel->SetForegroundColor(materialColorScheme->onSurfaceVariant);
-        AddChildTail(_gameCountLabel.GetPointer());
-    }
 
     _gameDataService = _viewModel->GetRomBrowserController()->GetGameDataService();
     _materialColorScheme = materialColorScheme;
@@ -78,8 +65,10 @@ RomBrowserTopScreenView::RomBrowserTopScreenView(
     _launchInfoLabel->SetPosition(_launchInfoPosition.x - 96, _launchInfoPosition.y + 2);
     _launchInfoLabel->SetBackgroundColor(materialColorScheme->surfaceBright);
     _launchInfoLabel->SetForegroundColor(materialColorScheme->onSurfaceVariant);
+#if SHOW_TOP_LAUNCH_INFO_TEXT
     if (!_launchInfoHidden)
         AddChildTail(_launchInfoLabel.GetPointer());
+#endif
 }
 
 void RomBrowserTopScreenView::InitVram(const VramContext& vramContext)
@@ -228,13 +217,16 @@ void RomBrowserTopScreenView::Update()
 
 void RomBrowserTopScreenView::Draw(GraphicsContext& graphicsContext)
 {
-    // widths follow the currently displayed string (updated at vblank), so the
-    // chips always match the text on screen
-    u32 gameCountWidth = _gameCountLabel ? _gameCountLabel->GetStringWidth() : 0;
     // a hidden launch info suppresses its text, heart and check together
     bool showFavorite = _selectedFavorite && !_launchInfoHidden;
     bool showCompleted = _selectedCompleted && !_launchInfoHidden;
+#if SHOW_TOP_LAUNCH_INFO_TEXT
+    // the width follows the currently displayed string (updated at vblank), so
+    // the chip always matches the text on screen
     u32 launchInfoWidth = _launchInfoHidden ? 0 : _launchInfoLabel->GetStringWidth();
+#else
+    u32 launchInfoWidth = 0;
+#endif
     int clusterWidth = 0;
     if (launchInfoWidth > 0)
         clusterWidth += launchInfoWidth + 2;
@@ -246,34 +238,27 @@ void RomBrowserTopScreenView::Draw(GraphicsContext& graphicsContext)
         clusterWidth -= 2;
     int heartX = 0;
     int checkX = 0;
-    if (gameCountWidth > 0 || clusterWidth > 0)
+    if (clusterWidth > 0)
     {
-        // both chips share one palette row (SimplePaletteManager doesn't dedup)
         u32 chipPaletteRow = graphicsContext.GetPaletteManager().AllocRow(
             GradientPalette(_materialColorScheme->outline, _materialColorScheme->surfaceBright), 0, 18);
-        if (gameCountWidth > 0)
-            DrawChip(graphicsContext, _gameCountPosition.x, _gameCountPosition.y,
-                std::max((int)gameCountWidth + 12, 38), chipPaletteRow);
-        if (clusterWidth > 0)
+        // the chip's right edge sits at the themed x, content centered with 6px padding
+        int chipWidth = std::max(clusterWidth + 12, 38);
+        int chipX = _launchInfoPosition.x - chipWidth;
+        int x = chipX + (chipWidth - clusterWidth) / 2;
+        if (launchInfoWidth > 0)
         {
-            // right chip's right edge sits at the themed x, content centered with 6px padding
-            int chipWidth = std::max(clusterWidth + 12, 38);
-            int chipX = _launchInfoPosition.x - chipWidth;
-            int x = chipX + (chipWidth - clusterWidth) / 2;
-            if (launchInfoWidth > 0)
-            {
-                _launchInfoLabel->SetPosition(x + (int)launchInfoWidth - 96, _launchInfoPosition.y + 2);
-                x += launchInfoWidth + 2;
-            }
-            if (showCompleted)
-            {
-                checkX = x;
-                x += 16 + 2;
-            }
-            if (showFavorite)
-                heartX = x;
-            DrawChip(graphicsContext, chipX, _launchInfoPosition.y, chipWidth, chipPaletteRow);
+            _launchInfoLabel->SetPosition(x + (int)launchInfoWidth - 96, _launchInfoPosition.y + 2);
+            x += launchInfoWidth + 2;
         }
+        if (showCompleted)
+        {
+            checkX = x;
+            x += 16 + 2;
+        }
+        if (showFavorite)
+            heartX = x;
+        DrawChip(graphicsContext, chipX, _launchInfoPosition.y, chipWidth, chipPaletteRow);
     }
     // the labels draw after the chips and therefore get lower oam indices,
     // which puts them in front

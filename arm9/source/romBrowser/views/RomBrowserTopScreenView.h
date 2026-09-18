@@ -39,7 +39,6 @@ private:
     SharedPtr<RomBrowserViewModel> _viewModel;
     const IThemeFileIconFactory* _themeFileIconFactory;
     SharedPtr<BannerView> _fileInfoView;
-    SharedPtr<Label2DView> _gameCountLabel;
     SharedPtr<Label2DView> _launchInfoLabel;
     IGameDataService* _gameDataService;
     std::unique_ptr<FileIcon> _selectedFileIcon;
@@ -49,8 +48,6 @@ private:
     bool _coverGraphicsUploaded = false;
     bool _showCover;
     Point _coverPosition;
-    Point _gameCountPosition;
-    bool _gameCountHidden = false;
     Point _launchInfoPosition;
     bool _launchInfoHidden = false;
     u32 _heartVramOffset = 0;

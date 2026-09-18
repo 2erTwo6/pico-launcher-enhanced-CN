@@ -71,12 +71,6 @@ public:
         return _customThemeInfo->topCoverInfo.GetPosition();
     }
 
-    TopStripElementLayout GetTopGameCountLayout() const override
-    {
-        return { _customThemeInfo->topGameCountInfo.GetPosition(),
-            _customThemeInfo->topGameCountInfo.GetIsHidden() };
-    }
-
     TopStripElementLayout GetTopLaunchInfoLayout() const override
     {
         return { _customThemeInfo->topLaunchInfoInfo.GetPosition(),

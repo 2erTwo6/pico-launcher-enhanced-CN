@@ -7,8 +7,9 @@
 class MaterialColorScheme;
 class IFontRepository;
 
-/// @brief Bottom sheet with library statistics: played/favorite counts, total
-///        launches, most played games and last played game.
+/// @brief Bottom sheet with library statistics: the folder's game count,
+///        played/favorite counts, total launches, most played games and last
+///        played game.
 class StatisticsBottomSheetView : public BottomSheetView
 {
     SHARED_ONLY(StatisticsBottomSheetView)
@@ -23,6 +24,7 @@ protected:
     void Close() override;
 
 private:
+    // folder count, played, launches, three most played, last played
     static constexpr u32 MAX_LINES = 7;
 
     SharedPtr<StatisticsViewModel> _viewModel;
