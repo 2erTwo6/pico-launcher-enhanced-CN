@@ -1,124 +1,246 @@
 #include "common.h"
 #include <string.h>
+#include <algorithm>
 #include "core/mini-printf.h"
 #include "gui/GraphicsContext.h"
+#include "gui/VramContext.h"
+#include "gui/OamBuilder.h"
+#include "gui/palette/GradientPalette.h"
 #include "themes/material/MaterialColorScheme.h"
 #include "themes/IFontRepository.h"
 #include "gui/input/InputProvider.h"
 #include "gui/FocusManager.h"
+#include "folderIcon.h"
+#include "gamesIcon.h"
+#include "smallHeartIconFilled.h"
+#include "checkIcon.h"
+#include "recentIcon.h"
 #include "StatisticsBottomSheetView.h"
 
-#define TITLE_LABEL_X       20
-#define TITLE_LABEL_Y       16
+// Everything is placed from the sheet's top edge, which rests at y 32 once the
+// sheet is open, so the panel runs from screen y 48 (title) to 180 (last row).
 
-#define LINE_X              20
-#define LINE_FIRST_Y        40
-#define LINE_SPACING        16
+#define TITLE_X             20
+#define TITLE_Y             16
+#define TITLE_WIDTH         128
 
-#define LINE_WIDTH          216
-#define LINE_MAX_CHARS      120
+// Four equal tiles across the 216 px the other sheets use for content: a 16 px
+// icon, the figure beside it in the largest font there is, and a small caption
+// centred under both.
+#define TILES_X             20
+#define TILE_WIDTH          54
+#define TILE_Y              34
+#define TILE_ICON_DX        7
+#define TILE_NUMBER_DX      27
+#define TILE_NUMBER_DY      1
+#define TILE_NUMBER_WIDTH   32
+#define CAPTION_Y           52
+
+#define HEADING_X           20
+#define HEADING_Y           70
+#define HEADING_WIDTH       160
+
+// Rank, name and count on one line, the count against the right edge so the
+// three numbers line up and read as a column.
+#define ROW_FIRST_Y         82
+#define ROW_SPACING         14
+#define RANK_X              20
+#define RANK_WIDTH          12
+#define NAME_X              32
+#define NAME_WIDTH          156
+#define NAME_MAX_CHARS      120
+#define COUNT_X             196
+#define COUNT_WIDTH         40
+
+#define LAST_Y              132
+#define LAST_ICON_X         20
+#define LAST_TEXT_X         40
+#define LAST_TEXT_WIDTH     132
+#define DATE_X              172
+#define DATE_WIDTH          64
+#define DATE_DY             2
+
+#define ICON_SIZE           16
 
 // The totals line - "265 launches, 57h 24m played" - is switched off for now and
 // kept behind this rather than removed: the play time in it is the clock running
-// while a game was open, not time played (issue #9), so it overstates.
+// while a game was open, not time played (issue #9), so it overstates. Switched
+// on, it takes the place of the "Most played" heading, which it is the total of.
 #define SHOW_STATISTICS_LAUNCHES_AND_TIME 0
 
 StatisticsBottomSheetView::StatisticsBottomSheetView(SharedPtr<StatisticsViewModel> viewModel,
     const MaterialColorScheme* materialColorScheme, const IFontRepository* fontRepository)
     : _viewModel(std::move(viewModel))
-    , _titleLabel(Label2DView::CreateShared(128, 16, 25, fontRepository->GetFont(FontType::Medium11)))
     , _materialColorScheme(materialColorScheme)
 {
-    _titleLabel->SetText(u"Statistics");
-    AddChildTail(_titleLabel.GetPointer());
+    _titleLabel = AddLabel(fontRepository, FontType::Medium11, TITLE_WIDTH, 25, "Statistics");
 
     char text[144];
 
-    // The count of the folder being browsed heads the panel. It used to sit in
-    // a pill at the top-left of the top screen, and moved here when that corner
-    // was cleared.
-    u32 folderGames = _viewModel->GetFolderGameCount();
-    if (folderGames > 0)
+    // The folder count is the one the top screen used to show in its corner: the
+    // folder being browsed, not the whole card. The other three are library wide.
+    const u32 figures[TILE_COUNT] =
     {
-        mini_snprintf(text, sizeof(text), "%u game%s in this folder", folderGames, folderGames == 1 ? "" : "s");
-        AddLine(fontRepository, FontType::Regular10, text);
+        _viewModel->GetFolderGameCount(),
+        _viewModel->GetPlayedCount(),
+        _viewModel->GetFavoriteCount(),
+        _viewModel->GetCompletedCount()
+    };
+    static const char* const kCaptions[TILE_COUNT] = { "in folder", "played", "favorites", "completed" };
+    for (u32 i = 0; i < TILE_COUNT; i++)
+    {
+        mini_snprintf(text, sizeof(text), "%u", figures[i]);
+        _tileNumbers[i] = AddLabel(fontRepository, FontType::Medium11, TILE_NUMBER_WIDTH, 10, text);
+        _tileCaptions[i] = AddLabel(fontRepository, FontType::Medium7_5, TILE_WIDTH, 15, kCaptions[i],
+            Alignment::Center);
     }
 
-    if (_viewModel->GetPlayedCount() == 0 && _viewModel->GetFavoriteCount() == 0 &&
-        _viewModel->GetCompletedCount() == 0)
+    if (_viewModel->GetPlayedCount() == 0)
     {
-        AddLine(fontRepository, FontType::Regular10, "Nothing played yet.");
+        _headingLabel = AddLabel(fontRepository, FontType::Regular10, HEADING_WIDTH, 32, "Nothing played yet.");
+        return;
+    }
+
+#if SHOW_STATISTICS_LAUNCHES_AND_TIME
+    u32 playMinutes = _viewModel->GetTotalPlayMinutes();
+    if (playMinutes > 0)
+    {
+        mini_snprintf(text, sizeof(text), "%u launch%s, %uh %02um played",
+            _viewModel->GetTotalLaunches(), _viewModel->GetTotalLaunches() == 1 ? "" : "es",
+            playMinutes / 60, playMinutes % 60);
     }
     else
     {
-        if (_viewModel->GetCompletedCount() > 0)
-        {
-            mini_snprintf(text, sizeof(text), "%u game%s played, %u favorite%s, %u completed",
-                _viewModel->GetPlayedCount(), _viewModel->GetPlayedCount() == 1 ? "" : "s",
-                _viewModel->GetFavoriteCount(), _viewModel->GetFavoriteCount() == 1 ? "" : "s",
-                _viewModel->GetCompletedCount());
-        }
-        else
-        {
-            mini_snprintf(text, sizeof(text), "%u game%s played, %u favorite%s",
-                _viewModel->GetPlayedCount(), _viewModel->GetPlayedCount() == 1 ? "" : "s",
-                _viewModel->GetFavoriteCount(), _viewModel->GetFavoriteCount() == 1 ? "" : "s");
-        }
-        AddLine(fontRepository, FontType::Regular10, text);
-
-#if SHOW_STATISTICS_LAUNCHES_AND_TIME
-        u32 playMinutes = _viewModel->GetTotalPlayMinutes();
-        if (playMinutes > 0)
-        {
-            mini_snprintf(text, sizeof(text), "%u launch%s, %uh %02um played",
-                _viewModel->GetTotalLaunches(), _viewModel->GetTotalLaunches() == 1 ? "" : "es",
-                playMinutes / 60, playMinutes % 60);
-        }
-        else
-        {
-            mini_snprintf(text, sizeof(text), "%u launch%s in total",
-                _viewModel->GetTotalLaunches(), _viewModel->GetTotalLaunches() == 1 ? "" : "es");
-        }
-        AddLine(fontRepository, FontType::Regular10, text);
+        mini_snprintf(text, sizeof(text), "%u launch%s in total",
+            _viewModel->GetTotalLaunches(), _viewModel->GetTotalLaunches() == 1 ? "" : "es");
+    }
+    _headingLabel = AddLabel(fontRepository, FontType::Medium7_5, HEADING_WIDTH, 48, text);
+#else
+    _headingLabel = AddLabel(fontRepository, FontType::Medium7_5, HEADING_WIDTH, 32, "Most played");
 #endif
 
-        for (u32 t = 0; t < _viewModel->GetTopCount(); t++)
-        {
-            const auto& entry = _viewModel->GetTopEntry(t);
-            mini_snprintf(text, sizeof(text), "%u. %s (%ux)",
-                t + 1, entry.fileName.GetString(), entry.launchCount);
-            AddLine(fontRepository, FontType::Medium7_5, text);
-        }
+    char name[100];
+    _topCount = std::min(_viewModel->GetTopCount(), TOP_COUNT);
+    for (u32 t = 0; t < _topCount; t++)
+    {
+        const auto& entry = _viewModel->GetTopEntry(t);
+        mini_snprintf(text, sizeof(text), "%u", t + 1);
+        _rankLabels[t] = AddLabel(fontRepository, FontType::Regular10, RANK_WIDTH, 3, text);
+        CopyNameWithoutExtension(name, sizeof(name), entry.fileName.GetString());
+        _nameLabels[t] = AddLabel(fontRepository, FontType::Regular10, NAME_WIDTH, NAME_MAX_CHARS, name);
+        mini_snprintf(text, sizeof(text), "%ux", entry.launchCount);
+        _countLabels[t] = AddLabel(fontRepository, FontType::Regular10, COUNT_WIDTH, 10, text, Alignment::End);
+    }
 
-        const char* lastPlayed = _viewModel->GetLastPlayed().lastPlayed.GetString();
-        if (strlen(lastPlayed) >= 16)
-        {
-            mini_snprintf(text, sizeof(text), "Last: %s (%c%c/%c%c %c%c:%c%c)",
-                _viewModel->GetLastPlayed().fileName.GetString(),
-                lastPlayed[8], lastPlayed[9], lastPlayed[5], lastPlayed[6],
-                lastPlayed[11], lastPlayed[12], lastPlayed[14], lastPlayed[15]);
-            AddLine(fontRepository, FontType::Medium7_5, text);
-        }
+    const char* lastPlayed = _viewModel->GetLastPlayed().lastPlayed.GetString();
+    if (strlen(lastPlayed) >= 16)
+    {
+        CopyNameWithoutExtension(name, sizeof(name), _viewModel->GetLastPlayed().fileName.GetString());
+        mini_snprintf(text, sizeof(text), "Last: %s", name);
+        _lastLabel = AddLabel(fontRepository, FontType::Regular10, LAST_TEXT_WIDTH, NAME_MAX_CHARS, text);
+        // stored as "YYYY-MM-DD HH:MM", shown as "16/07 20:41"
+        mini_snprintf(text, sizeof(text), "%c%c/%c%c %c%c:%c%c",
+            lastPlayed[8], lastPlayed[9], lastPlayed[5], lastPlayed[6],
+            lastPlayed[11], lastPlayed[12], lastPlayed[14], lastPlayed[15]);
+        _dateLabel = AddLabel(fontRepository, FontType::Medium7_5, DATE_WIDTH, 16, text, Alignment::End);
+        _hasLast = true;
     }
 }
 
-void StatisticsBottomSheetView::AddLine(const IFontRepository* fontRepository, FontType fontType, const char* text)
+SharedPtr<Label2DView> StatisticsBottomSheetView::AddLabel(const IFontRepository* fontRepository,
+    FontType fontType, u32 width, u32 maxChars, const char* text, Alignment alignment)
 {
-    if (_lineCount >= MAX_LINES)
-        return;
-    auto label = Label2DView::CreateShared(LINE_WIDTH, 16, LINE_MAX_CHARS, fontRepository->GetFont(fontType));
+    auto label = Label2DView::CreateShared(width, 16, maxChars, fontRepository->GetFont(fontType));
+    label->SetHorizontalAlignment(alignment);
     label->SetEllipsisStyle(LabelView::EllipsisStyle::Ellipsis);
     label->SetText(text);
     AddChildTail(label.GetPointer());
-    _lines[_lineCount++] = std::move(label);
+    return label;
+}
+
+// "Game.nds" reads as a title here rather than as a file, so the extension goes
+// - when it is one to four characters long, which every rom type the launcher
+// lists has. Anything else after a dot stays, so a dotted name is not cut short.
+void StatisticsBottomSheetView::CopyNameWithoutExtension(char* dst, u32 dstSize, const char* fileName)
+{
+    u32 length = strlen(fileName);
+    const char* dot = strrchr(fileName, '.');
+    if (dot && dot != fileName)
+    {
+        u32 extensionLength = length - (u32)(dot - fileName) - 1;
+        if (extensionLength >= 1 && extensionLength <= 4)
+            length = (u32)(dot - fileName);
+    }
+    if (length >= dstSize)
+        length = dstSize - 1;
+    memcpy(dst, fileName, length);
+    dst[length] = 0;
+}
+
+void StatisticsBottomSheetView::InitVram(const VramContext& vramContext)
+{
+    BottomSheetView::InitVram(vramContext);
+
+    const auto objVramManager = vramContext.GetObjVramManager();
+    if (objVramManager)
+    {
+        static const unsigned int* const kTiles[TILE_COUNT] =
+            { folderIconTiles, gamesIconTiles, smallHeartIconFilledTiles, checkIconTiles };
+        static const u32 kTilesLength[TILE_COUNT] =
+            { folderIconTilesLen, gamesIconTilesLen, smallHeartIconFilledTilesLen, checkIconTilesLen };
+        for (u32 i = 0; i < TILE_COUNT; i++)
+            _tileIconVramOffsets[i] = LoadSprite(*objVramManager, kTiles[i], kTilesLength[i]);
+        _clockIconVramOffset = LoadSprite(*objVramManager, recentIconTiles, recentIconTilesLen);
+    }
+}
+
+u32 StatisticsBottomSheetView::LoadSprite(IVramManager& vramManager, const unsigned int* tiles, u32 tilesLength) const
+{
+    u32 vramOffset = vramManager.Alloc(tilesLength);
+    dma_ntrCopy32(3, tiles, vramManager.GetVramAddress(vramOffset), tilesLength);
+    return vramOffset;
 }
 
 void StatisticsBottomSheetView::Update()
 {
-    _titleLabel->SetPosition(TITLE_LABEL_X, _position.y + TITLE_LABEL_Y);
-    for (u32 i = 0; i < _lineCount; i++)
-        _lines[i]->SetPosition(LINE_X, _position.y + LINE_FIRST_Y + i * LINE_SPACING);
+    int y = _position.y;
+    _titleLabel->SetPosition(TITLE_X, y + TITLE_Y);
+    for (u32 i = 0; i < TILE_COUNT; i++)
+    {
+        int tileX = TILES_X + (int)i * TILE_WIDTH;
+        _tileNumbers[i]->SetPosition(tileX + TILE_NUMBER_DX, y + TILE_Y + TILE_NUMBER_DY);
+        _tileCaptions[i]->SetPosition(tileX, y + CAPTION_Y);
+    }
+    if (_headingLabel)
+        _headingLabel->SetPosition(HEADING_X, y + HEADING_Y);
+    for (u32 t = 0; t < _topCount; t++)
+    {
+        int rowY = y + ROW_FIRST_Y + (int)t * ROW_SPACING;
+        _rankLabels[t]->SetPosition(RANK_X, rowY);
+        _nameLabels[t]->SetPosition(NAME_X, rowY);
+        _countLabels[t]->SetPosition(COUNT_X, rowY);
+    }
+    if (_hasLast)
+    {
+        _lastLabel->SetPosition(LAST_TEXT_X, y + LAST_Y);
+        _dateLabel->SetPosition(DATE_X, y + LAST_Y + DATE_DY);
+    }
     BottomSheetView::Update();
+}
+
+void StatisticsBottomSheetView::DrawIcon(GraphicsContext& graphicsContext, int x, int y, u32 vramOffset,
+    const Rgb<8, 8, 8>& backColor, const Rgb<8, 8, 8>& tint) const
+{
+    // The sheet slides in from the bottom, and an oam y past the screen wraps.
+    if (!graphicsContext.IsVisible(Rectangle(x, y, ICON_SIZE, ICON_SIZE)))
+        return;
+    u32 paletteRow = graphicsContext.GetPaletteManager().AllocRow(
+        GradientPalette(backColor, tint), y, y + ICON_SIZE);
+    auto oams = graphicsContext.GetOamManager().AllocOams(1);
+    OamBuilder::OamWithSize<ICON_SIZE, ICON_SIZE>(x, y, vramOffset >> 7)
+        .WithPalette16(paletteRow)
+        .WithPriority(graphicsContext.GetPriority())
+        .Build(oams[0]);
 }
 
 void StatisticsBottomSheetView::Draw(GraphicsContext& graphicsContext)
@@ -126,17 +248,45 @@ void StatisticsBottomSheetView::Draw(GraphicsContext& graphicsContext)
     graphicsContext.SetClipArea(GetBounds());
     u32 oldPrio = graphicsContext.SetPriority(1);
     {
-        auto backColor = _materialColorScheme->GetColor(md::sys::color::surfaceContainerLow);
+        const auto backColor = _materialColorScheme->GetColor(md::sys::color::surfaceContainerLow);
+        const auto& bright = _materialColorScheme->onSurface;
+        const auto& body = _materialColorScheme->onSurfaceVariant;
+        const auto& faint = _materialColorScheme->outline;
+        // The same green the top screen gives its completed check.
+        const Rgb<8, 8, 8> completedGreen(67, 160, 71);
 
-        _titleLabel->SetBackgroundColor(backColor);
-        _titleLabel->SetForegroundColor(_materialColorScheme->onSurface);
-        _titleLabel->Draw(graphicsContext);
-
-        for (u32 i = 0; i < _lineCount; i++)
+        auto paint = [&](const SharedPtr<Label2DView>& label, const Rgb<8, 8, 8>& color)
         {
-            _lines[i]->SetBackgroundColor(backColor);
-            _lines[i]->SetForegroundColor(_materialColorScheme->onSurfaceVariant);
-            _lines[i]->Draw(graphicsContext);
+            if (!label)
+                return;
+            label->SetBackgroundColor(backColor);
+            label->SetForegroundColor(color);
+            label->Draw(graphicsContext);
+        };
+
+        paint(_titleLabel, bright);
+
+        const Rgb<8, 8, 8> tints[TILE_COUNT] = { body, body, _materialColorScheme->primary, completedGreen };
+        for (u32 i = 0; i < TILE_COUNT; i++)
+        {
+            paint(_tileNumbers[i], bright);
+            paint(_tileCaptions[i], faint);
+            DrawIcon(graphicsContext, TILES_X + (int)i * TILE_WIDTH + TILE_ICON_DX, _position.y + TILE_Y,
+                _tileIconVramOffsets[i], backColor, tints[i]);
+        }
+
+        paint(_headingLabel, body);
+        for (u32 t = 0; t < _topCount; t++)
+        {
+            paint(_rankLabels[t], faint);
+            paint(_nameLabels[t], body);
+            paint(_countLabels[t], bright);
+        }
+        if (_hasLast)
+        {
+            paint(_lastLabel, body);
+            paint(_dateLabel, faint);
+            DrawIcon(graphicsContext, LAST_ICON_X, _position.y + LAST_Y, _clockIconVramOffset, backColor, body);
         }
     }
     graphicsContext.SetPriority(oldPrio);

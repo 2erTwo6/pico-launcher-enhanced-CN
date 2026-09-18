@@ -18,6 +18,10 @@
   play (#9), so it overstated. The code is kept behind a switch for when the counting is fixed.
 - The statistics panel drops its total launches and play time line for the same reason, kept
   behind a switch the same way. The three most launched games keep their launch counts.
+- The statistics panel was redrawn: a row of four figures with an icon each (games in the
+  folder, played, favorites, completed), the three most launched games in a list with the
+  counts against the right edge, and the last game played next to the clock icon. Names
+  show without their file extension there.
 
 ### [enhanced-v1.7.0]
 

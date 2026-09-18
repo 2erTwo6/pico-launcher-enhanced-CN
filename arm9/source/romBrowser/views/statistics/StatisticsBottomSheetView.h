@@ -1,20 +1,28 @@
 #pragma once
 #include "core/SharedPtr.h"
+#include "core/math/Rgb.h"
+#include "gui/Alignment.h"
 #include "romBrowser/views/BottomSheetView.h"
 #include "gui/views/Label2DView.h"
 #include "romBrowser/viewModels/StatisticsViewModel.h"
 
 class MaterialColorScheme;
 class IFontRepository;
+class IVramManager;
 
-/// @brief Bottom sheet with library statistics: the folder's game count,
-///        played/favorite counts, most played games and last played game. The
-///        total launches and play time line is switched off in the .cpp.
+/// @brief Bottom sheet with library statistics.
+///
+/// A row of four figures, each with an icon: games in this folder, played,
+/// favorites, completed. Under it the three most launched games with their
+/// counts against the right edge, and the last game played next to the clock
+/// the panel is opened with. The total launches and play time line is switched
+/// off in the .cpp.
 class StatisticsBottomSheetView : public BottomSheetView
 {
     SHARED_ONLY(StatisticsBottomSheetView)
 
 public:
+    void InitVram(const VramContext& vramContext) override;
     void Update() override;
     void Draw(GraphicsContext& graphicsContext) override;
     bool HandleInput(const InputProvider& inputProvider, FocusManager& focusManager) override;
@@ -24,17 +32,34 @@ protected:
     void Close() override;
 
 private:
-    // folder count, played, launches (when switched on), three most played, last played
-    static constexpr u32 MAX_LINES = 7;
+    static constexpr u32 TILE_COUNT = 4;
+    static constexpr u32 TOP_COUNT = STATISTICS_TOP_COUNT;
 
     SharedPtr<StatisticsViewModel> _viewModel;
-    SharedPtr<Label2DView> _titleLabel;
-    SharedPtr<Label2DView> _lines[MAX_LINES];
-    u32 _lineCount = 0;
     const MaterialColorScheme* _materialColorScheme;
+
+    SharedPtr<Label2DView> _titleLabel;
+    SharedPtr<Label2DView> _tileNumbers[TILE_COUNT];
+    SharedPtr<Label2DView> _tileCaptions[TILE_COUNT];
+    u32 _tileIconVramOffsets[TILE_COUNT] = {};
+    /// "Most played" over the list, or the reason there is no list.
+    SharedPtr<Label2DView> _headingLabel;
+    SharedPtr<Label2DView> _rankLabels[TOP_COUNT];
+    SharedPtr<Label2DView> _nameLabels[TOP_COUNT];
+    SharedPtr<Label2DView> _countLabels[TOP_COUNT];
+    u32 _topCount = 0;
+    SharedPtr<Label2DView> _lastLabel;
+    SharedPtr<Label2DView> _dateLabel;
+    u32 _clockIconVramOffset = 0;
+    bool _hasLast = false;
 
     StatisticsBottomSheetView(SharedPtr<StatisticsViewModel> viewModel,
         const MaterialColorScheme* materialColorScheme, const IFontRepository* fontRepository);
 
-    void AddLine(const IFontRepository* fontRepository, FontType fontType, const char* text);
+    SharedPtr<Label2DView> AddLabel(const IFontRepository* fontRepository, FontType fontType,
+        u32 width, u32 maxChars, const char* text, Alignment alignment = Alignment::Start);
+    static void CopyNameWithoutExtension(char* dst, u32 dstSize, const char* fileName);
+    u32 LoadSprite(IVramManager& vramManager, const unsigned int* tiles, u32 tilesLength) const;
+    void DrawIcon(GraphicsContext& graphicsContext, int x, int y, u32 vramOffset,
+        const Rgb<8, 8, 8>& backColor, const Rgb<8, 8, 8>& tint) const;
 };

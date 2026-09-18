@@ -73,7 +73,7 @@ Play time is approximate: a session starts when a game is launched and ends the 
 The clock button in the app bar opens a list of up to 20 recently played games, most recent first, each with the date and time it was last played. Tap an entry (or highlight it and press A) to jump to that game's folder with the game preselected. Press B to close the panel.
 
 ## Statistics
-Hold the clock button in the app bar for about half a second to open a summary panel: how many games the folder you are in holds, how many games you have played, favorited and completed, your top 3 most launched games, and the last game you played. The total launches and play time line is switched off in this version, for the reason given above. Press B to close it. A short tap on the clock opens the recently played panel instead.
+Hold the clock button in the app bar for about half a second to open a summary panel: a row of four figures with an icon each (games in the folder you are in, played, favorites, completed), your three most launched games with their counts, and the last game you played with its date and time. File names show without their extension there. The total launches and play time line is switched off in this version, for the reason given above. Press B to close it. A short tap on the clock opens the recently played panel instead.
 
 ## Screenshots
 Hold START for about half a second to save both screens to `/_pico/screenshots` on your SD card, as BMP files.
