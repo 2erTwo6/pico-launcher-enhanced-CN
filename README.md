@@ -29,7 +29,7 @@ Everything upstream Pico Launcher offers (display modes, [custom icons, banners 
 - **Statistics panel** — hold the clock button for totals and most-played games
 - **Screenshots** — hold START for about half a second to save both screens to `/_pico/screenshots`
 - **Per-game launch tracking** — launch count and last-played date, kept per game and shown in the recently played and statistics panels
-- **Approximate play time** — per game and in the statistics panel
+- **Approximate play time** — per game, in the favorites panel
 - **Game deletion** — trash button with confirmation; removes the ROM and its save
 - **Brightness control** — set the DS Lite's backlight level from display settings
 - **Hide empty folders** — optional; folders with nothing playable inside are left out of the listing

@@ -16,6 +16,8 @@
 - The launch count and play time at the top-right of the top screen are switched off; the
   favorite and completed markers stay. The time counted the clock while a game was open, not
   play (#9), so it overstated. The code is kept behind a switch for when the counting is fixed.
+- The statistics panel drops its total launches and play time line for the same reason, kept
+  behind a switch the same way. The three most launched games keep their launch counts.
 
 ### [enhanced-v1.7.0]
 

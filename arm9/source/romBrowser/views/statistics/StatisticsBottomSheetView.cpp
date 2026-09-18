@@ -18,6 +18,11 @@
 #define LINE_WIDTH          216
 #define LINE_MAX_CHARS      120
 
+// The totals line - "265 launches, 57h 24m played" - is switched off for now and
+// kept behind this rather than removed: the play time in it is the clock running
+// while a game was open, not time played (issue #9), so it overstates.
+#define SHOW_STATISTICS_LAUNCHES_AND_TIME 0
+
 StatisticsBottomSheetView::StatisticsBottomSheetView(SharedPtr<StatisticsViewModel> viewModel,
     const MaterialColorScheme* materialColorScheme, const IFontRepository* fontRepository)
     : _viewModel(std::move(viewModel))
@@ -61,6 +66,7 @@ StatisticsBottomSheetView::StatisticsBottomSheetView(SharedPtr<StatisticsViewMod
         }
         AddLine(fontRepository, FontType::Regular10, text);
 
+#if SHOW_STATISTICS_LAUNCHES_AND_TIME
         u32 playMinutes = _viewModel->GetTotalPlayMinutes();
         if (playMinutes > 0)
         {
@@ -74,6 +80,7 @@ StatisticsBottomSheetView::StatisticsBottomSheetView(SharedPtr<StatisticsViewMod
                 _viewModel->GetTotalLaunches(), _viewModel->GetTotalLaunches() == 1 ? "" : "es");
         }
         AddLine(fontRepository, FontType::Regular10, text);
+#endif
 
         for (u32 t = 0; t < _viewModel->GetTopCount(); t++)
         {

@@ -8,8 +8,8 @@ class MaterialColorScheme;
 class IFontRepository;
 
 /// @brief Bottom sheet with library statistics: the folder's game count,
-///        played/favorite counts, total launches, most played games and last
-///        played game.
+///        played/favorite counts, most played games and last played game. The
+///        total launches and play time line is switched off in the .cpp.
 class StatisticsBottomSheetView : public BottomSheetView
 {
     SHARED_ONLY(StatisticsBottomSheetView)
@@ -24,7 +24,7 @@ protected:
     void Close() override;
 
 private:
-    // folder count, played, launches, three most played, last played
+    // folder count, played, launches (when switched on), three most played, last played
     static constexpr u32 MAX_LINES = 7;
 
     SharedPtr<StatisticsViewModel> _viewModel;
