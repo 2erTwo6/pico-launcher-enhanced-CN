@@ -18,7 +18,7 @@ A feature fork of [Pico Launcher](https://github.com/LNH-team/pico-launcher) by 
 
 Everything upstream Pico Launcher offers (display modes, [custom icons, banners & covers](docs/Customization.md) for games *and folders*, [themes](docs/Themes.md), [cheats](docs/Cheats.md), [file associations](docs/FileAssociations.md) — see [Usage](docs/Usage.md)), plus:
 
-- **Jump by initial** — press L or R to jump to the next initial letter in a folder sorted by name; a chip shows the letter you landed on
+- **Jump by initial** — press L or R to jump to the next initial letter in a folder sorted by name; the letter you land on shows for a moment at the bottom of the touch screen
 - **Game count** of the current folder on the top screen
 - **Random game launch** with SELECT + A
 - **Favorites** — press X on a game; a heart shows on the top screen

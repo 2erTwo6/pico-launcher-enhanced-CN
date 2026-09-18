@@ -61,11 +61,6 @@ private:
     int _lastGameDataItem = -1;
     u32 _lastGameDataVersion = 0;
     const MaterialColorScheme* _materialColorScheme;
-    // On an L/R jump the game-count chip briefly shows the letter landed on, so
-    // the jump is not disorienting; _gameCountText is the count to put back after
-    // the hold, and _letterHoldFrames counts it down.
-    char _gameCountText[16] = {};
-    int _letterHoldFrames = 0;
 
     RomBrowserTopScreenView(SharedPtr<RomBrowserViewModel> viewModel,
         const RomBrowserDisplayMode* displayMode,
@@ -75,5 +70,4 @@ private:
         const MaterialColorScheme* materialColorScheme);
 
     void DrawChip(GraphicsContext& graphicsContext, int x, int y, int width, u32 paletteRow);
-    void UpdateSortLetterChip(int selectedItem);
 };

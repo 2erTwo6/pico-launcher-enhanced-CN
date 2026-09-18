@@ -1,6 +1,5 @@
 #include "common.h"
 #include <algorithm>
-#include <ctype.h>
 #include <string.h>
 #include <libtwl/mem/memVram.h>
 #include <libtwl/gfx/gfx.h>
@@ -56,9 +55,10 @@ RomBrowserTopScreenView::RomBrowserTopScreenView(
     u32 gameCount = _viewModel->GetFileInfoManager().GetGameCount();
     if (gameCount > 0 && !_gameCountHidden)
     {
-        mini_snprintf(_gameCountText, sizeof(_gameCountText), "%u game%s", gameCount, gameCount == 1 ? "" : "s");
+        char text[16];
+        mini_snprintf(text, sizeof(text), "%u game%s", gameCount, gameCount == 1 ? "" : "s");
         _gameCountLabel = Label2DView::CreateShared(96, 16, 15, fontRepository->GetFont(FontType::Medium10));
-        _gameCountLabel->SetText(_gameCountText);
+        _gameCountLabel->SetText(text);
         // Draw() puts a chip behind each strip cluster so the strip stays readable
         // over any theme art; the label sits 6px in from the pill's left edge and
         // 2px down from its top
@@ -223,43 +223,7 @@ void RomBrowserTopScreenView::Update()
         _lastGameDataItem = selectedItem;
         _lastGameDataVersion = gameDataVersion;
     }
-
-    UpdateSortLetterChip(selectedItem);
     ViewContainer::Update();
-}
-
-// An L/R jump crosses the list by whole initials, which is easy to lose your place
-// in, so the game-count chip does double duty: on a jump it flashes the letter you
-// landed on for a moment, then settles back to the count. A plain d-pad step does
-// not - the controller only flags L/R jumps, which happen only in name sort, so the
-// letter is always meaningful. Reuses the chip that is already there, so there is
-// nothing new to place and a theme that hides the count hides this too.
-// kLetterHoldFrames is counted in Update() calls (one a frame), so ~2s at 60 fps.
-static constexpr int kLetterHoldFrames = 120;
-
-void RomBrowserTopScreenView::UpdateSortLetterChip(int selectedItem)
-{
-    // Drain the jump flag every frame, before the no-chip guard below. The flag
-    // lives on the controller and outlives this view, so a jump made in a folder
-    // with no game count (one holding only subfolders) must not leave it set for
-    // the next folder's freshly created top screen to consume and flash a letter
-    // on plain entry.
-    bool jumped = _viewModel->GetRomBrowserController()->ConsumeBigStepJump();
-
-    if (!_gameCountLabel)
-        return;
-
-    if (jumped && selectedItem >= 0)
-    {
-        char initial = (char)toupper((unsigned char)
-            _viewModel->GetFileInfoManager().GetItem(selectedItem).GetFileName()[0]);
-        char letter[2] = { initial, 0 };
-        _gameCountLabel->SetText(letter);
-        _letterHoldFrames = kLetterHoldFrames;
-    }
-
-    if (_letterHoldFrames > 0 && --_letterHoldFrames == 0)
-        _gameCountLabel->SetText(_gameCountText);
 }
 
 void RomBrowserTopScreenView::Draw(GraphicsContext& graphicsContext)

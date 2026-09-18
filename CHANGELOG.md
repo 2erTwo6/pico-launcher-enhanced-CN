@@ -7,6 +7,9 @@
 #### Changed
 - The theme selector opens on the theme you are using instead of the first one in the list,
   so a long list no longer has to be scrolled to find it (fixes #17).
+- The letter an L/R jump lands on now appears for a moment at the bottom of the touch
+  screen, the same way the screenshot message does, instead of replacing the game count on
+  the top screen. It shows on every theme, including the ones that hide the count.
 
 ### [enhanced-v1.7.0]
 

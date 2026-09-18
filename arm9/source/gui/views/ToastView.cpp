@@ -18,9 +18,12 @@
 
 // Room to breathe on both sides of the text. The panel is sized to the string
 // rather than to the screen, so a two word confirmation reads as something the
-// launcher put there on purpose instead of a bar across the bottom.
+// launcher put there on purpose instead of a bar across the bottom - and a single
+// letter, which is what an L/R jump says, as a small pill around that letter
+// rather than a bar with the letter at one end of it. The floor only keeps a
+// very short string from coming out narrower than the panel is tall.
 #define TEXT_PADDING_X      14
-#define MIN_WIDTH           72
+#define MIN_WIDTH           TOAST_HEIGHT
 #define MAX_WIDTH           232
 
 #define TEXT_HEIGHT         12
@@ -152,7 +155,12 @@ void ToastView::Update()
     _y = TOAST_BOTTOM - TOAST_HEIGHT + RISE_PIXELS - progress * RISE_PIXELS / PROGRESS_MAX;
 
     _label->SetAlpha(_alpha);
-    _label->SetPosition(_x + TEXT_PADDING_X, _y + (TOAST_HEIGHT - TEXT_HEIGHT) / 2);
+    // Centred in the panel, not started at its padding: the panel is normally
+    // sized to the text so the two agree, but whenever it is not - a string
+    // shorter than the floor, or longer than the panel can be - the text should
+    // still sit in the middle of it rather than against its left edge.
+    int textInset = std::max(TEXT_PADDING_X, ((int)_width - (int)_label->GetStringWidth()) / 2);
+    _label->SetPosition(_x + textInset, _y + (TOAST_HEIGHT - TEXT_HEIGHT) / 2);
     _label->Update();
 }
 

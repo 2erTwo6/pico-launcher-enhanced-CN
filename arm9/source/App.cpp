@@ -1,5 +1,6 @@
 #include "common.h"
 #include <algorithm>
+#include <ctype.h>
 #include <libtwl/mem/memVram.h>
 #include <libtwl/gfx/gfx.h>
 #include <libtwl/gfx/gfxOam.h>
@@ -542,6 +543,29 @@ void App::Update()
     // message is true, and it also puts it safely outside the picture.
     if (_toast)
     {
+        // An L/R jump crosses the list by whole initials, which is easy to lose
+        // your place in, so the letter landed on is said for a moment. The flag
+        // is drained every frame whether or not there is anything to show, so a
+        // jump is never kept to be announced later. It is read here, before
+        // this frame's input, so the jump it sees is last frame's - and by the
+        // end of that frame the browser view had already written the new
+        // selection back into the view model, which is where the name is read.
+        //
+        // Before the screenshot below on purpose: only one message shows at a
+        // time and the newest wins, and of the two the letter is the one that
+        // will be along again.
+        if (_romBrowserController.ConsumeBigStepJump())
+        {
+            const auto& viewModel = _romBrowserController.GetRomBrowserViewModel();
+            int selectedItem = viewModel->GetSelectedItem();
+            if (selectedItem >= 0)
+            {
+                char letter[2] = { (char)toupper((unsigned char)
+                    viewModel->GetFileInfoManager().GetItem(selectedItem).GetFileName()[0]), 0 };
+                _toast->Show(letter);
+            }
+        }
+
         switch (Screenshot::TakeResult())
         {
             case Screenshot::Result::Saved:
