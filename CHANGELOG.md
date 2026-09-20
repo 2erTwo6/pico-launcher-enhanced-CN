@@ -8,6 +8,8 @@
 - The launcher says which build it is: the version at the top-right of the statistics panel,
   and the version with the commit it was built from on the bottom screen while it boots and
   at the bottom-right of the theme selector's top screen, so a report can name the build.
+- A crown above the game's icon marks the most launched game, the one that heads the
+  statistics panel's list.
 
 #### Changed
 - The theme selector opens on the theme you are using instead of the first one in the list,
@@ -18,9 +20,14 @@
 - The game count left the top-left of the top screen and heads the statistics panel instead,
   as the count of the folder you are in. Themes that position or hide `topGameCount` keep
   loading; the key is ignored now (#18).
-- The launch count and play time at the top-right of the top screen are switched off; the
-  favorite and completed markers stay. The time counted the clock while a game was open, not
-  play (#9), so it overstated. The code is kept behind a switch for when the counting is fixed.
+- The launch count and play time at the top-right of the top screen are switched off. The time
+  counted the clock while a game was open, not play (#9), so it overstated. The code is kept
+  behind a switch for when the counting is fixed.
+- The favorite and completed markers left the top-right of the top screen and now sit above
+  the game's icon, astride the card's top edge, without the pill, drawn as crisp pixel shapes
+  with an outline so they read on any theme. A custom theme that does not place them itself
+  gets them above its icon the same way; one that sets `topLaunchInfo` keeps its pill where
+  it put it.
 - The statistics panel drops its total launches and play time line for the same reason, kept
   behind a switch the same way. The three most launched games keep their launch counts.
 - The statistics panel was redrawn: a row of four figures with an icon each (games in the

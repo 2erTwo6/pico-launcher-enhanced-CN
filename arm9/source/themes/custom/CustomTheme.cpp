@@ -47,9 +47,11 @@ static const CustomThemeInfo sDefaultCustomThemeInfo
     .topBannerTextLine2Info = CustomTopTextElementInfo(Point(70, 155), 176, Rgb8(30, 30, 30), Rgb8(200, 200, 200)),
     .topFileNameTextInfo = CustomTopTextElementInfo(Point(18, 170), 220, Rgb8(30, 30, 30), Rgb8(200, 200, 200)),
     .topCoverInfo = CustomTopCoverInfo(Point(75, 18)),
-    // top-right corner of the launch info pill. A "topGameCount" key in an
-    // older theme is simply not looked at any more.
-    .topLaunchInfoInfo = CustomTopStripElementInfo(Point(252, 2), false),
+    // Only reached when the theme sets "topLaunchInfo" itself: then it is the
+    // top-right corner of the markers' pill. Unset, the view factory puts the
+    // markers at the theme's icon instead. A "topGameCount" key in an older
+    // theme is simply not looked at any more.
+    .topLaunchInfoInfo = CustomTopStripElementInfo(Point(252, 2), false, false),
 
     .gridIconInfo = CustomBottomIconInfo(Rgb8(200, 200, 200)),
 
@@ -151,7 +153,8 @@ static CustomTopStripElementInfo parseCustomTopStripElementInfo(
 
     return CustomTopStripElementInfo(
         parsePoint(json[KEY_ELEMENT_POSITION], defaultInfo.GetPosition()),
-        json[KEY_ELEMENT_HIDDEN] | defaultInfo.GetIsHidden()
+        json[KEY_ELEMENT_HIDDEN] | defaultInfo.GetIsHidden(),
+        true
     );
 }
 

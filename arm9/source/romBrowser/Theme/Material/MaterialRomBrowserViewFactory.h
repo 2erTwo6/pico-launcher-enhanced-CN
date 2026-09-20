@@ -73,7 +73,12 @@ public:
 
     TopStripElementLayout GetTopLaunchInfoLayout() const override
     {
-        return { Point(252, 2), false };
+        // The game's markers sit centred over the icon of the file info card
+        // (at x 24, 32 px wide) and astride the card's top edge, which runs at
+        // y 119: the glyphs sit a little high in their 16 px tiles, so the
+        // tiles start three rows under the halfway point to read as centred
+        // on the edge.
+        return { Point(40, 114), false, true, true };
     }
 
 private:

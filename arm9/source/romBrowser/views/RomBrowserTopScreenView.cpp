@@ -19,8 +19,9 @@
 #include "themes/material/MaterialColorScheme.h"
 #include "themes/IFontRepository.h"
 #include "../Theme/IRomBrowserViewFactory.h"
-#include "smallHeartIconFilled.h"
-#include "checkIcon.h"
+#include "heartMarker.h"
+#include "checkMarker.h"
+#include "crownIcon.h"
 #include "stripChipBg.h"
 #include "RomBrowserTopScreenView.h"
 
@@ -29,6 +30,11 @@
 // shows is the clock running while a game was open, not time played (issue #9),
 // so it overstates. The favorite heart and completed check stay on screen.
 #define SHOW_TOP_LAUNCH_INFO_TEXT 0
+
+// Dark amber to bright gold: the crown's own shading. It does not take the
+// theme's colours because it is the one marker that is a prize, not a state.
+static const Rgb<8, 8, 8> kCrownOutlineColor(90, 56, 8);
+static const Rgb<8, 8, 8> kCrownFillColor(255, 205, 50);
 
 RomBrowserTopScreenView::RomBrowserTopScreenView(
     SharedPtr<RomBrowserViewModel> viewModel,
@@ -52,6 +58,8 @@ RomBrowserTopScreenView::RomBrowserTopScreenView(
     // top-left corner now opens the statistics panel instead.
     auto launchInfoLayout = romBrowserViewFactory->GetTopLaunchInfoLayout();
     _launchInfoHidden = launchInfoLayout.hidden;
+    _launchInfoCentered = launchInfoLayout.centered;
+    _launchInfoBare = launchInfoLayout.bare;
     _launchInfoPosition = Point(std::clamp(launchInfoLayout.position.x, 0, 256),
         std::clamp(launchInfoLayout.position.y, 0, 192));
 
@@ -77,12 +85,19 @@ void RomBrowserTopScreenView::InitVram(const VramContext& vramContext)
     const auto objVramManager = vramContext.GetObjVramManager();
     if (objVramManager)
     {
-        _heartVramOffset = objVramManager->Alloc(smallHeartIconFilledTilesLen);
-        dma_ntrCopy32(3, smallHeartIconFilledTiles,
-            objVramManager->GetVramAddress(_heartVramOffset), smallHeartIconFilledTilesLen);
-        _checkVramOffset = objVramManager->Alloc(checkIconTilesLen);
-        dma_ntrCopy32(3, checkIconTiles,
-            objVramManager->GetVramAddress(_checkVramOffset), checkIconTilesLen);
+        // The marker versions of the heart and check: crisp pixel shapes with a
+        // one pixel outline and no anti-aliasing, because these sit over
+        // whatever the theme paints and a 16-tone edge can only melt into one
+        // colour. The smooth versions stay in the sheets, which have one.
+        _heartVramOffset = objVramManager->Alloc(heartMarkerTilesLen);
+        dma_ntrCopy32(3, heartMarkerTiles,
+            objVramManager->GetVramAddress(_heartVramOffset), heartMarkerTilesLen);
+        _checkVramOffset = objVramManager->Alloc(checkMarkerTilesLen);
+        dma_ntrCopy32(3, checkMarkerTiles,
+            objVramManager->GetVramAddress(_checkVramOffset), checkMarkerTilesLen);
+        _crownVramOffset = objVramManager->Alloc(crownIconTilesLen);
+        dma_ntrCopy32(3, crownIconTiles,
+            objVramManager->GetVramAddress(_crownVramOffset), crownIconTilesLen);
         _chipVramOffset = objVramManager->Alloc(stripChipBgTilesLen);
         dma_ntrCopy32(3, stripChipBgTiles,
             objVramManager->GetVramAddress(_chipVramOffset), stripChipBgTilesLen);
@@ -152,8 +167,11 @@ void RomBrowserTopScreenView::Update()
     u32 gameDataVersion = _gameDataService->GetVersion();
     if (selectedItem != _lastGameDataItem || gameDataVersion != _lastGameDataVersion)
     {
+        if (!_mostPlayedKnown || gameDataVersion != _mostPlayedVersion)
+            RefreshMostPlayed(gameDataVersion);
         _selectedFavorite = false;
         _selectedCompleted = false;
+        _selectedCrowned = false;
         char info[24];
         info[0] = 0;
         if (selectedItem >= 0)
@@ -169,6 +187,8 @@ void RomBrowserTopScreenView::Update()
             {
                 _selectedFavorite = entry->favorite;
                 _selectedCompleted = entry->completed;
+                _selectedCrowned = _mostPlayedFileName.GetString()[0] != 0 &&
+                    strcmp(entry->fileName.GetString(), _mostPlayedFileName.GetString()) == 0;
                 if (entry->launchCount > 0)
                 {
                     if (entry->playMinutes >= 60)
@@ -215,70 +235,131 @@ void RomBrowserTopScreenView::Update()
     ViewContainer::Update();
 }
 
+// The crown goes to the game launched most, the same measure that orders the
+// statistics panel's list, so the two never disagree. Ties go to the name that
+// sorts first, so the answer does not depend on the order entries are stored in.
+// Play time is not consulted: it counts the clock, not the game (issue #9).
+void RomBrowserTopScreenView::RefreshMostPlayed(u32 gameDataVersion)
+{
+    _mostPlayedFileName = "";
+    const GameDataEntry* best = nullptr;
+    u32 count = _gameDataService->GetEntryCount();
+    for (u32 i = 0; i < count; i++)
+    {
+        const GameDataEntry& entry = _gameDataService->GetEntryByIndex(i);
+        if (entry.launchCount == 0)
+            continue;
+        if (!best || entry.launchCount > best->launchCount ||
+            (entry.launchCount == best->launchCount &&
+                strcasecmp(entry.fileName.GetString(), best->fileName.GetString()) < 0))
+        {
+            best = &entry;
+        }
+    }
+    if (best)
+        _mostPlayedFileName = best->fileName.GetString();
+    _mostPlayedVersion = gameDataVersion;
+    _mostPlayedKnown = true;
+}
+
 void RomBrowserTopScreenView::Draw(GraphicsContext& graphicsContext)
 {
-    // a hidden launch info suppresses its text, heart and check together
-    bool showFavorite = _selectedFavorite && !_launchInfoHidden;
-    bool showCompleted = _selectedCompleted && !_launchInfoHidden;
+    // a hidden launch info suppresses its text and all three markers together
+    bool hidden = _launchInfoHidden;
 #if SHOW_TOP_LAUNCH_INFO_TEXT
     // the width follows the currently displayed string (updated at vblank), so
     // the chip always matches the text on screen
-    u32 launchInfoWidth = _launchInfoHidden ? 0 : _launchInfoLabel->GetStringWidth();
+    u32 launchInfoWidth = hidden ? 0 : _launchInfoLabel->GetStringWidth();
 #else
     u32 launchInfoWidth = 0;
 #endif
+
+    // The markers in the order they are laid out, left to right. Centred over
+    // the icon they go crown, heart, check, as the card was mocked up; a pill
+    // keeps the order it always had, check then heart, and gets the crown at
+    // the left of it.
+    struct Marker
+    {
+        bool show;
+        u32 vramOffset;
+        Rgb<8, 8, 8> from;
+        Rgb<8, 8, 8> to;
+    };
+    // The marker sprites are two tones: fill at 15 and a one pixel outline at
+    // 1, so the gradient's first colour is the outline's. On the pill it is the
+    // pill's own colour and the outline vanishes into it; bare over the theme's
+    // art it is a dark shade of the marker's colour, the way the crown's always
+    // was, and reads as a drawn edge on any background.
+    auto edgeOf = [&](const Rgb<8, 8, 8>& tint)
+    {
+        if (!_launchInfoBare)
+            return _materialColorScheme->surfaceBright;
+        return Rgb<8, 8, 8>(tint.r * 2 / 5, tint.g * 2 / 5, tint.b * 2 / 5);
+    };
+    const Rgb<8, 8, 8> completedGreen(67, 160, 71);
+    const Marker crown = { _selectedCrowned && !hidden, _crownVramOffset, kCrownOutlineColor, kCrownFillColor };
+    const Marker heart = { _selectedFavorite && !hidden, _heartVramOffset,
+        edgeOf(_materialColorScheme->primary), _materialColorScheme->primary };
+    const Marker check = { _selectedCompleted && !hidden, _checkVramOffset,
+        edgeOf(completedGreen), completedGreen };
+    Marker markers[3] = { crown, check, heart };
+    if (_launchInfoCentered)
+    {
+        markers[1] = heart;
+        markers[2] = check;
+    }
+
     int clusterWidth = 0;
     if (launchInfoWidth > 0)
         clusterWidth += launchInfoWidth + 2;
-    if (showCompleted)
-        clusterWidth += 16 + 2;
-    if (showFavorite)
-        clusterWidth += 16 + 2;
+    for (const auto& marker : markers)
+        if (marker.show)
+            clusterWidth += 16 + 2;
     if (clusterWidth > 0)
         clusterWidth -= 2;
-    int heartX = 0;
-    int checkX = 0;
-    if (clusterWidth > 0)
+
+    // Icons sit one pixel down inside the 18 px pill, and on the point itself
+    // when bare.
+    int iconY = _launchInfoPosition.y + (_launchInfoBare ? 0 : 1);
+    // Centred: the row's middle stays on the point whether one marker shows
+    // or three. Otherwise the pill below decides where the row starts.
+    int x = _launchInfoCentered ? _launchInfoPosition.x - clusterWidth / 2 : _launchInfoPosition.x;
+    if (clusterWidth > 0 && !_launchInfoBare)
     {
+        // On a pill whose right edge sits at the themed x, content centred with
+        // 6px padding, growing to the left.
         u32 chipPaletteRow = graphicsContext.GetPaletteManager().AllocRow(
-            GradientPalette(_materialColorScheme->outline, _materialColorScheme->surfaceBright), 0, 18);
-        // the chip's right edge sits at the themed x, content centered with 6px padding
+            GradientPalette(_materialColorScheme->outline, _materialColorScheme->surfaceBright),
+            _launchInfoPosition.y, _launchInfoPosition.y + 18);
         int chipWidth = std::max(clusterWidth + 12, 38);
         int chipX = _launchInfoPosition.x - chipWidth;
-        int x = chipX + (chipWidth - clusterWidth) / 2;
-        if (launchInfoWidth > 0)
-        {
-            _launchInfoLabel->SetPosition(x + (int)launchInfoWidth - 96, _launchInfoPosition.y + 2);
-            x += launchInfoWidth + 2;
-        }
-        if (showCompleted)
-        {
-            checkX = x;
-            x += 16 + 2;
-        }
-        if (showFavorite)
-            heartX = x;
+        x = chipX + (chipWidth - clusterWidth) / 2;
         DrawChip(graphicsContext, chipX, _launchInfoPosition.y, chipWidth, chipPaletteRow);
+    }
+    if (launchInfoWidth > 0)
+    {
+        _launchInfoLabel->SetPosition(x + (int)launchInfoWidth - 96, _launchInfoPosition.y + 2);
+        x += launchInfoWidth + 2;
+    }
+    int markerX[3] = {};
+    for (int i = 0; i < 3; i++)
+    {
+        if (!markers[i].show)
+            continue;
+        markerX[i] = x;
+        x += 16 + 2;
     }
     // the labels draw after the chips and therefore get lower oam indices,
     // which puts them in front
     ViewContainer::Draw(graphicsContext);
-    if (showFavorite)
+    for (int i = 0; i < 3; i++)
     {
+        if (!markers[i].show)
+            continue;
         auto oams = graphicsContext.GetOamManager().AllocOams(1);
         u32 paletteRow = graphicsContext.GetPaletteManager().AllocRow(
-            GradientPalette(_materialColorScheme->surfaceBright, _materialColorScheme->primary), 1, 17);
-        OamBuilder::OamWithSize<16, 16>(heartX, _launchInfoPosition.y + 1, _heartVramOffset >> 7)
-            .WithPalette16(paletteRow)
-            .WithPriority(graphicsContext.GetPriority())
-            .Build(oams[0]);
-    }
-    if (showCompleted)
-    {
-        auto oams = graphicsContext.GetOamManager().AllocOams(1);
-        u32 paletteRow = graphicsContext.GetPaletteManager().AllocRow(
-            GradientPalette(_materialColorScheme->surfaceBright, Rgb<8, 8, 8>(67, 160, 71)), 1, 17);
-        OamBuilder::OamWithSize<16, 16>(checkX, _launchInfoPosition.y + 1, _checkVramOffset >> 7)
+            GradientPalette(markers[i].from, markers[i].to), iconY, iconY + 16);
+        OamBuilder::OamWithSize<16, 16>(markerX[i], iconY, markers[i].vramOffset >> 7)
             .WithPalette16(paletteRow)
             .WithPriority(graphicsContext.GetPriority())
             .Build(oams[0]);

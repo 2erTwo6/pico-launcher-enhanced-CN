@@ -73,8 +73,16 @@ public:
 
     TopStripElementLayout GetTopLaunchInfoLayout() const override
     {
-        return { _customThemeInfo->topLaunchInfoInfo.GetPosition(),
-            _customThemeInfo->topLaunchInfoInfo.GetIsHidden() };
+        const auto& info = _customThemeInfo->topLaunchInfoInfo;
+        if (info.IsSpecified())
+            return { info.GetPosition(), info.GetIsHidden() };
+        // Not placed by the theme: centred over the icon the theme does place,
+        // bare, where Material puts its own. In the themes the launcher ships
+        // with the card's top edge runs 13 px above the icon, so 18 px up puts
+        // the markers astride that edge - the same three rows under the halfway
+        // point as Material, for the same reason - rather than over the icon.
+        const auto& icon = _customThemeInfo->topIconInfo.GetPosition();
+        return { Point(icon.x + 16, icon.y - 18), false, true, true };
     }
 
     void LoadResources(const ITheme& theme, const VramContext& mainVramContext);

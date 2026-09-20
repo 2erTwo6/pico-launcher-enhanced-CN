@@ -16,12 +16,21 @@ class FileRecyclerAdapter;
 class IRomBrowserItemViewModel;
 
 // position is the top-left corner for the game count pill and the top-right
-// corner for the launch info pill (that one grows leftward); hidden suppresses
-// the pill, its text and its icons entirely
+// corner for the launch info pill (that one grows leftward), or its top-left
+// corner when it grows to the right; hidden suppresses the pill, its text and
+// its markers entirely
 struct TopStripElementLayout
 {
     Point position;
     bool hidden;
+    // Centred on position.x when set - one marker or three, the row keeps its
+    // middle there - and laid out to the left of position otherwise, which is
+    // then the pill's top-right corner.
+    bool centered = false;
+    // Drawn straight on the screen, with no pill under them. Material does this
+    // at the corner of its own card, which is backdrop enough; a custom theme
+    // keeps the pill, because its art may be anything.
+    bool bare = false;
 };
 
 class IRomBrowserViewFactory

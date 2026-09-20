@@ -34,7 +34,7 @@ Everything upstream Pico Launcher offers (display modes, [custom icons, banners 
 - **Brightness control** — set the DS Lite's backlight level from display settings
 - **Hide empty folders** — optional; folders with nothing playable inside are left out of the listing
 - **Cheats list that reads better** — the list wraps around at both ends, and X turns every cheat off at once
-- **Top strip readable on any theme** — the favorite and completed markers on the top screen sit on their own backdrop, and a [custom theme](docs/Themes.md) can move or hide them
+- **Game markers on the top screen** — a crown for the most launched game, a heart for a favorite and a check for a completed one, above the game's icon; a [custom theme](docs/Themes.md) can move or hide them
 - **Per-folder background music** — drop a `bgm.bcstm` inside a folder
 - **Time-of-day theme backgrounds** — optional night variants shown from 20:00 to 6:59
 - **Per-file game data** — favorites, completed marks and play stats belong to the ROM file, so two copies of a game never share them
