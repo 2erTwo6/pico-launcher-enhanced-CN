@@ -15,6 +15,7 @@
 #include "smallHeartIconFilled.h"
 #include "checkIcon.h"
 #include "recentIcon.h"
+#include "Version.h"
 #include "StatisticsBottomSheetView.h"
 
 // Everything is placed from the sheet's top edge, which rests at y 32 once the
@@ -23,6 +24,13 @@
 #define TITLE_X             20
 #define TITLE_Y             16
 #define TITLE_WIDTH         128
+
+// Version and build against the right edge of the title row, in the small font
+// and the faint colour: there to be found when it is needed, not to be read
+// every time the panel opens.
+#define VERSION_X           140
+#define VERSION_WIDTH       96
+#define VERSION_DY          3
 
 // Four equal tiles across the 216 px the other sheets use for content: a 16 px
 // icon, the figure beside it in the largest font there is, and a small caption
@@ -76,6 +84,10 @@ StatisticsBottomSheetView::StatisticsBottomSheetView(SharedPtr<StatisticsViewMod
     _titleLabel = AddLabel(fontRepository, FontType::Medium11, TITLE_WIDTH, 25, "Statistics");
 
     char text[144];
+
+    // Just the version here; the build hash is the splash screen's to show.
+    mini_snprintf(text, sizeof(text), "v%s", kLauncherVersion);
+    _versionLabel = AddLabel(fontRepository, FontType::Medium7_5, VERSION_WIDTH, 32, text, Alignment::End);
 
     // The folder count is the one the top screen used to show in its corner: the
     // folder being browsed, not the whole card. The other three are library wide.
@@ -205,6 +217,7 @@ void StatisticsBottomSheetView::Update()
 {
     int y = _position.y;
     _titleLabel->SetPosition(TITLE_X, y + TITLE_Y);
+    _versionLabel->SetPosition(VERSION_X, y + TITLE_Y + VERSION_DY);
     for (u32 i = 0; i < TILE_COUNT; i++)
     {
         int tileX = TILES_X + (int)i * TILE_WIDTH;
@@ -265,6 +278,7 @@ void StatisticsBottomSheetView::Draw(GraphicsContext& graphicsContext)
         };
 
         paint(_titleLabel, bright);
+        paint(_versionLabel, faint);
 
         const Rgb<8, 8, 8> tints[TILE_COUNT] = { body, body, _materialColorScheme->primary, completedGreen };
         for (u32 i = 0; i < TILE_COUNT; i++)

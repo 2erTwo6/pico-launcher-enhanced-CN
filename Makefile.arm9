@@ -24,6 +24,17 @@ AUDIODIRS	:=
 
 DEFINES		:= -DLIBTWL_ARM9
 
+# The commit this is built from, for the version line in the statistics panel,
+# with a "+" when the tree has uncommitted changes. Left out, quietly, when
+# there is no git or no repository: the version still shows, without a hash.
+GIT_HASH	:= $(shell git rev-parse --short=7 HEAD 2>/dev/null)
+ifneq ($(strip $(GIT_HASH)),)
+    ifneq ($(strip $(shell git status --porcelain --untracked-files=no 2>/dev/null)),)
+        GIT_HASH	:= $(GIT_HASH)+
+    endif
+    DEFINES	+= -DLAUNCHER_BUILD=\"$(GIT_HASH)\"
+endif
+
 # Libraries
 # ---------
 
@@ -188,6 +199,12 @@ $(BUILDDIR)/%.arm.c.o : %.arm.c
 	@echo "  CC.9    $<"
 	@$(MKDIR) -p $(@D)
 	$(V)$(CC) $(CFLAGS) -MMD -MP -marm -mlong-calls -c -o $@ $<
+
+# Version.cpp is the one file that bakes the hash in, so it is compiled every
+# time; nothing else reads LAUNCHER_BUILD, so nothing else has to be.
+.PHONY: FORCE
+FORCE:
+$(BUILDDIR)/arm9/source/Version.cpp.o: FORCE
 
 $(BUILDDIR)/%.cpp.o : %.cpp
 	@echo "  CXX.9   $<"

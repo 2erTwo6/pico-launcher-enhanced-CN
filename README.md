@@ -26,7 +26,7 @@ Everything upstream Pico Launcher offers (display modes, [custom icons, banners 
 - **Favorites and completed filters** — heart and check buttons in the app bar, tinted while active
 - **Favorites panel** — hold the heart button to see every favorite across all folders; tapping one jumps to it
 - **Recently played panel** — clock button in the app bar; tapping an entry jumps to the game
-- **Statistics panel** — hold the clock button for totals and most-played games
+- **Statistics panel** — hold the clock button for totals, most-played games and the launcher version
 - **Screenshots** — hold START for about half a second to save both screens to `/_pico/screenshots`
 - **Per-game launch tracking** — launch count and last-played date, kept per game and shown in the recently played and statistics panels
 - **Approximate play time** — per game, in the favorites panel

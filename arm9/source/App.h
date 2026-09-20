@@ -32,6 +32,7 @@
 #include "animation/Animator.h"
 #include "Screenshot.h"
 #include "gui/views/ToastView.h"
+#include "gui/views/Label2DView.h"
 
 class alignas(32) App : public IProcess
 {
@@ -90,6 +91,14 @@ private:
     bool _screenshotHoldArmed = false;
     SharedPtr<ToastView> _toast;
 
+    /// The version and build hash on the bottom screen while the launcher
+    /// boots: the only thing that screen shows until the browser fades in.
+    SharedPtr<Label2DView> _splashVersionLabel;
+    /// True from boot until the fade to the browser begins. While it is, the
+    /// bottom screen is the boot page - white, with the version - and the
+    /// browser is not drawn there.
+    bool _splashBottom = true;
+
     std::unique_ptr<ITheme> _theme;
     std::unique_ptr<IThemeBackground> _topBackground;
     std::unique_ptr<IThemeBackground> _bottomBackground;
@@ -133,6 +142,8 @@ private:
 
     void InitVramMapping() const;
     void DisplaySplashScreen() const;
+    void ShowSplashVersion();
+    void EndSplashBottom();
     void LoadTheme();
     void VCountIrq();
     void HandleInput();

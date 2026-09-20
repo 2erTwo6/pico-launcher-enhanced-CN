@@ -14,6 +14,9 @@
 #include "gui/materialDesign.h"
 #include "themes/material/MaterialColorSchemeFactory.h"
 #include "core/math/ColorConverter.h"
+#include "core/mini-printf.h"
+#include "themes/DefaultFontRepository.h"
+#include "Version.h"
 #include "core/math/RgbMixer.h"
 #include "gui/GraphicsContext.h"
 #include "romBrowser/views/ChipView.h"
@@ -35,6 +38,13 @@
 #include "App.h"
 
 #define SPLASH_FRAMES       44
+
+// Display control for the browser, and for the boot page under it: the same
+// mode with every background off, so only the version sprite shows over the
+// white backdrop until the browser takes over.
+#define BROWSER_DISPCNT         0x211F1B
+#define SPLASH_BOTTOM_DISPCNT   (BROWSER_DISPCNT & ~(0x0F << 8))
+#define SPLASH_VERSION_WIDTH    128
 
 App::App(IAppSettingsService& appSettingsService, IBgmService& bgmService, IGameDataService& gameDataService)
     : _mainObjPltt(GFX_PLTT_OBJ_MAIN)
@@ -91,6 +101,66 @@ void App::DisplaySplashScreen() const
     REG_MASTER_BRIGHT_SUB = 0;
 }
 
+// The bottom screen is white from power-on until the browser fades in. This
+// puts the version and build on it meanwhile, small, bottom-right, so a boot
+// says which launcher it is - for the time the theme takes to load, and then
+// for the frames the splash holds. Drawn once here by hand, straight to the
+// hardware, because the main loop and the palette manager's scanline machinery
+// are not running yet; and left untouched by the loop until EndSplashBottom,
+// so the page looks the same for the whole of its time on screen.
+void App::ShowSplashVersion()
+{
+    static DefaultFontRepository sFonts;
+
+    char text[48];
+    if (kLauncherBuild[0] != 0)
+        mini_snprintf(text, sizeof(text), "v%s (%s)", kLauncherVersion, kLauncherBuild);
+    else
+        mini_snprintf(text, sizeof(text), "v%s", kLauncherVersion);
+
+    _splashVersionLabel = Label2DView::CreateShared(SPLASH_VERSION_WIDTH, 16, 32, sFonts.GetFont(FontType::Medium10));
+    _splashVersionLabel->SetHorizontalAlignment(Alignment::End);
+    _splashVersionLabel->SetPosition(256 - 8 - SPLASH_VERSION_WIDTH, 192 - 8 - 16);
+    _splashVersionLabel->SetBackgroundColor(Rgb<8, 8, 8>(255, 255, 255));
+    _splashVersionLabel->SetForegroundColor(Rgb<8, 8, 8>(110, 112, 120));
+    _splashVersionLabel->InitVram(_mainVramContext);
+    _splashVersionLabel->SetText(text);
+    _splashVersionLabel->VBlank();
+
+    // Static, not a local: Apply copies the rows to palette ram with dma, and
+    // dma cannot read the stack, which lives in dtcm - a local here handed the
+    // sprite a row of garbage and the text came out as a smear of dark pixels.
+    // Row 15 only, since Apply writes every row from the offset up.
+    static SimplePaletteManager sPalette;
+    sPalette.Reset(15);
+    GraphicsContext context
+    {
+        &_mainOam,
+        &sPalette,
+        &_rgb6Palette
+    };
+    _mainOam.Clear();
+    _splashVersionLabel->Draw(context);
+    VBlank::Wait();
+    _mainOam.Apply(GFX_OAM_MAIN);
+    sPalette.Apply(GFX_PLTT_OBJ_MAIN);
+    GFX_PLTT_BG_MAIN[0] = ColorConverter::ToGBGR565(Rgb<8, 8, 8>(255, 255, 255));
+    REG_DISPCNT = SPLASH_BOTTOM_DISPCNT;
+    REG_MASTER_BRIGHT = 0;
+}
+
+// The boot page hands the bottom screen to the browser: backgrounds on, colour
+// 0 the browser's, and master brightness at full white for the fade to start
+// from - the same white the page was, so nothing is seen to change until the
+// browser comes through it.
+void App::EndSplashBottom()
+{
+    _splashBottom = false;
+    GFX_PLTT_BG_MAIN[0] = ColorConverter::ToGBGR565(_theme->GetMaterialColorScheme().inverseOnSurface);
+    REG_DISPCNT = BROWSER_DISPCNT;
+    REG_MASTER_BRIGHT = 0x4010;
+}
+
 void App::LoadTheme()
 {
     ThemeInfoFactory themeInfoFactory;
@@ -126,6 +196,7 @@ void App::Run()
 
     InitVramMapping();
     DisplaySplashScreen();
+    ShowSplashVersion();
     gx_init();
 
     _chipViewVram = ChipView::UploadGraphics(_mainObjVram);
@@ -170,9 +241,11 @@ void App::Run()
 
     RgbMixer::MakeGradientPalette((u16*)GFX_PLTT_BG_MAIN, scrimBlendColor, materialColorScheme.GetColor(md::sys::color::surfaceContainerLow));
 
-    GFX_PLTT_BG_MAIN[0] = ColorConverter::ToGBGR565(materialColorScheme.inverseOnSurface);
+    // Colour 0 stays the boot page's white for now, and the backgrounds stay
+    // off: EndSplashBottom gives both to the browser when the page hands over.
+    GFX_PLTT_BG_MAIN[0] = ColorConverter::ToGBGR565(Rgb<8, 8, 8>(255, 255, 255));
     GFX_PLTT_BG_MAIN[31] = ColorConverter::ToGBGR565(materialColorScheme.scrim);
-    REG_DISPCNT = 0x211F1B;
+    REG_DISPCNT = SPLASH_BOTTOM_DISPCNT;
     REG_BG0HOFS = 0;
     REG_BG0VOFS = 0;
     REG_BG0CNT = 3;
@@ -233,10 +306,14 @@ void App::MainLoop()
             {
                 fadeWaitFrames--;
                 REG_BLDALPHA_SUB = 16;
-                REG_MASTER_BRIGHT = 0x4010;
+                // The bottom screen is the boot page at full brightness; the
+                // white the fade will start from is the page's own.
+                REG_MASTER_BRIGHT = 0;
             }
             else
             {
+                if (_splashBottom)
+                    EndSplashBottom();
                 bool fadeComplete = _fadeAnimator.Update();
                 if (fadeComplete)
                 {
@@ -649,22 +726,34 @@ void App::Draw()
 
     if (_topBackground)
         _topBackground->Draw(subGraphicsContext);
-    if (_bottomBackground)
-        _bottomBackground->Draw(mainGraphicsContext);
-
     if (!_changeDisplayMode && _romBrowserBottomScreenViewModel.IsRomBrowserVisible())
     {
         _romBrowserTopScreenView->Draw(subGraphicsContext);
     }
 
-    _dialogPresenter.ApplyClipArea(mainGraphicsContext);
-    if (!_changeDisplayMode)
+    if (_splashBottom)
     {
-        _romBrowserBottomScreenView->Draw(mainGraphicsContext);
+        // The boot page is what ShowSplashVersion put in the hardware oam and
+        // palette, and it stays exactly that until EndSplashBottom: nothing is
+        // drawn on this engine and VBlank leaves its oam and palette alone, so
+        // the page cannot change its look between the theme loading and the
+        // splash holding. The browser is not drawn either: with the
+        // backgrounds off, its sprites would be the only part of it to show.
     }
-    mainGraphicsContext.ResetClipArea();
+    else
+    {
+        if (_bottomBackground)
+            _bottomBackground->Draw(mainGraphicsContext);
 
-    _dialogPresenter.Draw(mainGraphicsContext);
+        _dialogPresenter.ApplyClipArea(mainGraphicsContext);
+        if (!_changeDisplayMode)
+        {
+            _romBrowserBottomScreenView->Draw(mainGraphicsContext);
+        }
+        mainGraphicsContext.ResetClipArea();
+
+        _dialogPresenter.Draw(mainGraphicsContext);
+    }
 
     // Last, so nothing the browser draws afterwards can land on top of it. And
     // not at all while a screenshot has this engine: on the frame it is actually
@@ -696,7 +785,9 @@ void App::VBlank()
     _screenshot.VBlankBegin();
     _inputProvider.Sample();
     _inputRepeater.Update();
-    _mainOam.Apply(GFX_OAM_MAIN);
+    // The main engine keeps the boot page as drawn until the fade begins.
+    if (!_splashBottom)
+        _mainOam.Apply(GFX_OAM_MAIN);
     _subOam.Apply(GFX_OAM_SUB);
     _subObjPltt.Apply(GFX_PLTT_OBJ_SUB);
 
@@ -711,6 +802,11 @@ void App::VBlank()
     // other screen's - on the first of those frames nothing has been mirrored
     // yet, since that happens further down this same function. Wider on
     // purpose, for the reason in Draw: too narrow writes into a saved image.
+    // Runs during the boot page too: its scheme is empty then, so it writes no
+    // palette row and leaves the page's own, but it is what arms the scanline
+    // walk the vcount irq performs - which fires from the first frame when the
+    // theme selector left the match line enabled, and would otherwise walk a
+    // null scheme and hang.
     if (!_screenshot.IsMirroringMainEngine())
         _mainObjPltt.VBlank();
 

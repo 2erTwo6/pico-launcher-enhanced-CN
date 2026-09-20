@@ -15,8 +15,9 @@ class IVramManager;
 /// A row of four figures, each with an icon: games in this folder, played,
 /// favorites, completed. Under it the three most launched games with their
 /// counts against the right edge, and the last game played next to the clock
-/// the panel is opened with. The total launches and play time line is switched
-/// off in the .cpp.
+/// the panel is opened with. The launcher's version and build sit faint at the
+/// top-right, for the day a report has to say which build it comes from. The
+/// total launches and play time line is switched off in the .cpp.
 class StatisticsBottomSheetView : public BottomSheetView
 {
     SHARED_ONLY(StatisticsBottomSheetView)
@@ -39,6 +40,7 @@ private:
     const MaterialColorScheme* _materialColorScheme;
 
     SharedPtr<Label2DView> _titleLabel;
+    SharedPtr<Label2DView> _versionLabel;
     SharedPtr<Label2DView> _tileNumbers[TILE_COUNT];
     SharedPtr<Label2DView> _tileCaptions[TILE_COUNT];
     u32 _tileIconVramOffsets[TILE_COUNT] = {};
