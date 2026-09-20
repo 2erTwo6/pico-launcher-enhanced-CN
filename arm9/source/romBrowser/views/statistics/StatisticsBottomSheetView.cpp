@@ -25,7 +25,7 @@
 #define TITLE_Y             16
 #define TITLE_WIDTH         128
 
-// Version and build against the right edge of the title row, in the small font
+// Version against the right edge of the title row, in the small font
 // and the faint colour: there to be found when it is needed, not to be read
 // every time the panel opens.
 #define VERSION_X           140
@@ -85,8 +85,9 @@ StatisticsBottomSheetView::StatisticsBottomSheetView(SharedPtr<StatisticsViewMod
 
     char text[144];
 
-    // Just the version here; the build hash is the splash screen's to show.
-    mini_snprintf(text, sizeof(text), "v%s", kLauncherVersion);
+    // Just the version here; the build hash is the boot page's and the theme
+    // selector's to show.
+    FormatLauncherVersion(text, sizeof(text), false);
     _versionLabel = AddLabel(fontRepository, FontType::Medium7_5, VERSION_WIDTH, 32, text, Alignment::End);
 
     // The folder count is the one the top screen used to show in its corner: the

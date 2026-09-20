@@ -51,11 +51,11 @@ RomBrowserTopScreenView::RomBrowserTopScreenView(
 {
     AddChildTail(_fileInfoView.GetPointer());
 
-    // the strip is positioned by the theme (top-right corner for the launch
-    // info) so a custom theme can move or hide it away from its own top art;
-    // clamp to the screen so a malformed theme.json can't place the OBJs at
-    // coordinates that wrap in OAM. The game count that used to sit in the
-    // top-left corner now opens the statistics panel instead.
+    // the markers' row is placed by the theme (see TopStripElementLayout), so a
+    // custom theme can move or hide it away from its own top art; clamp to the
+    // screen so a malformed theme.json can't place the OBJs at coordinates that
+    // wrap in OAM. The game count that used to sit in the top-left corner now
+    // opens the statistics panel instead.
     auto launchInfoLayout = romBrowserViewFactory->GetTopLaunchInfoLayout();
     _launchInfoHidden = launchInfoLayout.hidden;
     _launchInfoCentered = launchInfoLayout.centered;
@@ -235,10 +235,10 @@ void RomBrowserTopScreenView::Update()
     ViewContainer::Update();
 }
 
-// The crown goes to the game launched most, the same measure that orders the
-// statistics panel's list, so the two never disagree. Ties go to the name that
-// sorts first, so the answer does not depend on the order entries are stored in.
-// Play time is not consulted: it counts the clock, not the game (issue #9).
+// The crown goes to the game launched most, by the same comparator that orders
+// the statistics panel's list (LaunchedMoreThan), so the two never disagree:
+// ties go to the name that sorts first, not to whichever was stored first. Play
+// time is not consulted: it counts the clock, not the game (issue #9).
 void RomBrowserTopScreenView::RefreshMostPlayed(u32 gameDataVersion)
 {
     _mostPlayedFileName = "";
@@ -249,12 +249,8 @@ void RomBrowserTopScreenView::RefreshMostPlayed(u32 gameDataVersion)
         const GameDataEntry& entry = _gameDataService->GetEntryByIndex(i);
         if (entry.launchCount == 0)
             continue;
-        if (!best || entry.launchCount > best->launchCount ||
-            (entry.launchCount == best->launchCount &&
-                strcasecmp(entry.fileName.GetString(), best->fileName.GetString()) < 0))
-        {
+        if (!best || LaunchedMoreThan(entry, *best))
             best = &entry;
-        }
     }
     if (best)
         _mostPlayedFileName = best->fileName.GetString();

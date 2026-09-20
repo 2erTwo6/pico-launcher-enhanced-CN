@@ -38,7 +38,7 @@ public:
             _totalPlayMinutes += entry.playMinutes;
             for (u32 t = 0; t < STATISTICS_TOP_COUNT; t++)
             {
-                if (!top[t] || entry.launchCount > top[t]->launchCount)
+                if (!top[t] || LaunchedMoreThan(entry, *top[t]))
                 {
                     for (u32 m = STATISTICS_TOP_COUNT - 1; m > t; m--)
                         top[m] = top[m - 1];

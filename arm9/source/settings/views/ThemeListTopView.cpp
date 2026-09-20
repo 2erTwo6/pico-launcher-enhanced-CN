@@ -30,10 +30,7 @@ ThemeListTopView::ThemeListTopView(SharedPtr<ThemeListViewModel> viewModel, cons
     // The one screen of the launcher that is about the launcher itself, so the
     // version and the commit it was built from live here, small, in the corner.
     char version[48];
-    if (kLauncherBuild[0] != 0)
-        mini_snprintf(version, sizeof(version), "v%s (%s)", kLauncherVersion, kLauncherBuild);
-    else
-        mini_snprintf(version, sizeof(version), "v%s", kLauncherVersion);
+    FormatLauncherVersion(version, sizeof(version), true);
     _versionLabel->SetHorizontalAlignment(Alignment::End);
     _versionLabel->SetText(version);
     _versionLabel->SetPosition(VERSION_X, VERSION_Y);

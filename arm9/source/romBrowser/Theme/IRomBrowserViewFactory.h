@@ -15,10 +15,10 @@ class IThemeFileIconFactory;
 class FileRecyclerAdapter;
 class IRomBrowserItemViewModel;
 
-// position is the top-left corner for the game count pill and the top-right
-// corner for the launch info pill (that one grows leftward), or its top-left
-// corner when it grows to the right; hidden suppresses the pill, its text and
-// its markers entirely
+// Where the selected game's markers (crown, check, heart, and the launch text
+// when it is switched on) go. Unless centered, position is the top-right corner
+// of their pill, which grows to the left; centered, it is the middle of the
+// row's top edge. hidden suppresses the pill, its text and its markers entirely.
 struct TopStripElementLayout
 {
     Point position;
@@ -27,9 +27,10 @@ struct TopStripElementLayout
     // middle there - and laid out to the left of position otherwise, which is
     // then the pill's top-right corner.
     bool centered = false;
-    // Drawn straight on the screen, with no pill under them. Material does this
-    // at the corner of its own card, which is backdrop enough; a custom theme
-    // keeps the pill, because its art may be anything.
+    // Drawn straight on the screen, with no pill under them, as two-tone
+    // outlined sprites that read on any art. Material does this above the icon
+    // of its card, and so does a custom theme that does not place the markers
+    // itself; one that does keeps the pill where it put it.
     bool bare = false;
 };
 

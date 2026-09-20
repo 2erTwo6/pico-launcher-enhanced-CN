@@ -113,10 +113,7 @@ void App::ShowSplashVersion()
     static DefaultFontRepository sFonts;
 
     char text[48];
-    if (kLauncherBuild[0] != 0)
-        mini_snprintf(text, sizeof(text), "v%s (%s)", kLauncherVersion, kLauncherBuild);
-    else
-        mini_snprintf(text, sizeof(text), "v%s", kLauncherVersion);
+    FormatLauncherVersion(text, sizeof(text), true);
 
     _splashVersionLabel = Label2DView::CreateShared(SPLASH_VERSION_WIDTH, 16, 32, sFonts.GetFont(FontType::Medium10));
     _splashVersionLabel->SetHorizontalAlignment(Alignment::End);

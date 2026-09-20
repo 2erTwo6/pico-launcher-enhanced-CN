@@ -6,9 +6,9 @@
 
 A feature fork of [Pico Launcher](https://github.com/LNH-team/pico-launcher) by the LNH team, adding library features inspired by modern consoles — favorites, play stats, recently played, and more — while staying fully compatible with stock SD cards: it is a drop-in `_picoboot.nds` replacement, and all upstream features remain intact.
 
-![Cover flow in the Material theme: a favorite, completed game, with the jump-by-initial letter in the top-left chip](docs/images/enhanced/Coverflow.png)
+![Cover flow in the Material theme: a favorite, completed game, with the heart and check markers above its icon](docs/images/enhanced/Coverflow.png)
 ![Icon grid in the Material theme, with the highlighted game's cover on the top screen](docs/images/enhanced/Grid.png)
-![A custom theme: the game count and launch info stay readable on their own backdrop](docs/images/enhanced/CustomTheme.png)
+![A custom theme: the game markers sit above the game's icon, drawn to read on any art](docs/images/enhanced/CustomTheme.png)
 ![The favorites panel, every favorite across all folders with its play time](docs/images/enhanced/Favorites.png)
 ![The statistics panel: totals, most launched games and the last one played](docs/images/enhanced/Statistics.png)
 
@@ -28,7 +28,7 @@ Everything upstream Pico Launcher offers (display modes, [custom icons, banners 
 - **Recently played panel** — clock button in the app bar; tapping an entry jumps to the game
 - **Statistics panel** — hold the clock button for totals, most-played games and the launcher version
 - **Screenshots** — hold START for about half a second to save both screens to `/_pico/screenshots`
-- **Per-game launch tracking** — launch count and last-played date, kept per game and shown in the recently played and statistics panels
+- **Per-game launch tracking** — launch count and last-played date, kept per game; the recently played panel shows each game's date, and the statistics panel the counts of the three most launched games
 - **Approximate play time** — per game, in the favorites panel
 - **Game deletion** — trash button with confirmation; removes the ROM and its save
 - **Brightness control** — set the DS Lite's backlight level from display settings

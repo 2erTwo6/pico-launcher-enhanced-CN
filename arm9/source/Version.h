@@ -16,3 +16,7 @@
 
 extern const char kLauncherVersion[];
 extern const char kLauncherBuild[];
+
+/// @brief Writes "v1.8.0", or "v1.8.0 (f2e5642+)" when asked for the build and
+///        there is one, so every screen that names the build spells it the same.
+void FormatLauncherVersion(char* dst, unsigned int size, bool withBuild);
