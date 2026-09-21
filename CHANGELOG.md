@@ -2,7 +2,7 @@
 
 ## Enhanced fork
 
-### [Unreleased]
+### [enhanced-v1.8.0]
 
 #### Added
 - An about sheet, behind the small button in the menu's title row: Pico Launcher by the LNH
