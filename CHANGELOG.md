@@ -2,6 +2,13 @@
 
 ## Enhanced fork
 
+### [Unreleased]
+
+#### Changed
+- The icon buttons' selector VRAM offset starts at zero instead of whatever was in memory. Nothing
+  drew before it was set, so nothing changes on screen; it is an uninitialised member less. From
+  marlooonxdd (#24).
+
 ### [enhanced-v1.8.0]
 
 #### Added
