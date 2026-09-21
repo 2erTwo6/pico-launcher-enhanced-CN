@@ -32,7 +32,7 @@ private:
 
         // Recents, the favorites and completed filters, delete and the panels
         // that sat behind long presses are all written out in the menu this
-        // button opens, so the bar is back to three.
+        // button opens: six buttons down to three, one more than upstream.
         APP_BAR_BUTTON_MENU,
         APP_BAR_BUTTON_DISPLAY_SETTINGS,
         // APP_BAR_BUTTON_SETTINGS

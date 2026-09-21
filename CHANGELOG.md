@@ -17,7 +17,8 @@
   statistics panel's list.
 
 #### Changed
-- The app bar is back to three buttons: back, a three-dot menu and display settings. Recently
+- The app bar is down to three buttons: back, a three-dot menu and display settings, from the
+  six the fork had grown to (upstream has two). Recently
   played, favorites, statistics, delete game and the favorites and completed filters moved into
   the sheet the menu opens, each with its name, and the two filters say `on` or `off` there.
   The long presses on the clock and the heart went with their buttons, so no app bar button
