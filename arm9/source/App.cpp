@@ -28,6 +28,7 @@
 #include "romBrowser/views/recents/RecentsBottomSheetView.h"
 #include "romBrowser/views/statistics/StatisticsBottomSheetView.h"
 #include "romBrowser/views/deleteconfirm/DeleteConfirmBottomSheetView.h"
+#include "romBrowser/views/menu/MenuBottomSheetView.h"
 #include "romBrowser/views/DisplaySettingsBottomSheetView.h"
 #include "bgm/AudioStreamPlayer.h"
 #include "bgm/BgmService.h"
@@ -406,6 +407,16 @@ void App::HandleTrigger(RomBrowserStateTrigger trigger, RomBrowserState newState
             HandleHideDeleteConfirmTrigger();
             break;
         }
+        case RomBrowserStateTrigger::ShowMenu:
+        {
+            HandleShowMenuTrigger();
+            break;
+        }
+        case RomBrowserStateTrigger::HideMenu:
+        {
+            HandleHideMenuTrigger();
+            break;
+        }
         case RomBrowserStateTrigger::Navigate:
         {
             HandleNavigateTrigger();
@@ -418,6 +429,9 @@ void App::HandleTrigger(RomBrowserStateTrigger trigger, RomBrowserState newState
         }
         case RomBrowserStateTrigger::ChangeDisplayMode:
         {
+            // a filter toggled from the menu: the browser rebuilds and the
+            // menu's sheet goes, in that order (see Update)
+            CloseSheetIfLeavingMenu();
             _changeDisplayMode = true;
             break;
         }
@@ -461,6 +475,7 @@ void App::HandleHideDisplaySettingsTrigger()
 
 void App::HandleShowRecentsTrigger()
 {
+    CloseSheetIfLeavingMenu();
     auto recentsViewModel = SharedPtr<RecentsViewModel>::MakeShared(
         &_romBrowserController, GameListKind::Recents);
     auto recentsDialog = RecentsBottomSheetView::CreateShared(
@@ -477,6 +492,7 @@ void App::HandleHideRecentsTrigger()
 
 void App::HandleShowFavoritesTrigger()
 {
+    CloseSheetIfLeavingMenu();
     auto favoritesViewModel = SharedPtr<RecentsViewModel>::MakeShared(
         &_romBrowserController, GameListKind::Favorites);
     auto favoritesDialog = RecentsBottomSheetView::CreateShared(
@@ -493,6 +509,7 @@ void App::HandleHideFavoritesTrigger()
 
 void App::HandleShowStatisticsTrigger()
 {
+    CloseSheetIfLeavingMenu();
     auto statisticsViewModel = SharedPtr<StatisticsViewModel>::MakeShared(&_romBrowserController);
     auto statisticsDialog = StatisticsBottomSheetView::CreateShared(
         std::move(statisticsViewModel), &_theme->GetMaterialColorScheme(), _theme->GetFontRepository());
@@ -508,6 +525,7 @@ void App::HandleHideStatisticsTrigger()
 
 void App::HandleShowDeleteConfirmTrigger()
 {
+    CloseSheetIfLeavingMenu();
     auto deleteConfirmViewModel = SharedPtr<DeleteConfirmViewModel>::MakeShared(&_romBrowserController);
     auto deleteConfirmDialog = DeleteConfirmBottomSheetView::CreateShared(
         std::move(deleteConfirmViewModel), &_theme->GetMaterialColorScheme(), _theme->GetFontRepository());
@@ -519,6 +537,31 @@ void App::HandleHideDeleteConfirmTrigger()
     _dialogPresenter.CloseDialog();
     if (!_dialogPresenter.GetOldFocus())
         _romBrowserBottomScreenView->Focus(_focusManager);
+}
+
+void App::HandleShowMenuTrigger()
+{
+    auto menuViewModel = SharedPtr<MenuViewModel>::MakeShared(&_romBrowserController);
+    auto menuDialog = MenuBottomSheetView::CreateShared(
+        std::move(menuViewModel), &_theme->GetMaterialColorScheme(), _theme->GetFontRepository());
+    _dialogPresenter.ShowDialog(std::move(menuDialog));
+}
+
+void App::HandleHideMenuTrigger()
+{
+    _dialogPresenter.CloseDialog();
+    if (!_dialogPresenter.GetOldFocus())
+        _romBrowserBottomScreenView->Focus(_focusManager);
+}
+
+// An entry picked from the menu takes the menu's sheet with it. Closing it and
+// showing the next sheet in the same frame is fine: the presenter keeps the
+// new one waiting until the old one has slid out, and Update holds input off
+// meanwhile, so nothing can navigate away under a sheet that is still queued.
+void App::CloseSheetIfLeavingMenu()
+{
+    if (_romBrowserController.GetStateMachine().GetPreviousState() == RomBrowserState::Menu)
+        _dialogPresenter.CloseDialog();
 }
 
 void App::HandleNavigateTrigger()
@@ -673,7 +716,8 @@ void App::Update()
     bool isRomBrowserVisible = _romBrowserBottomScreenViewModel.IsRomBrowserVisible();
     if (isRomBrowserVisible && !_exit &&
         curState != RomBrowserState::Launching &&
-        curState != RomBrowserState::GoingToSettingsScreen)
+        curState != RomBrowserState::GoingToSettingsScreen &&
+        !_dialogPresenter.IsSwitchingDialog())
     {
         HandleInput();
     }

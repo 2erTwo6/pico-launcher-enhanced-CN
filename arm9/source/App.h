@@ -160,6 +160,9 @@ private:
     void HandleHideStatisticsTrigger();
     void HandleShowDeleteConfirmTrigger();
     void HandleHideDeleteConfirmTrigger();
+    void HandleShowMenuTrigger();
+    void HandleHideMenuTrigger();
+    void CloseSheetIfLeavingMenu();
     void HandleNavigateTrigger();
     void HandleFolderLoadDoneTrigger();
     void HandleChangeDisplayModeTrigger(RomBrowserState newState);

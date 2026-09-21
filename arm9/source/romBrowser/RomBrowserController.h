@@ -44,6 +44,8 @@ public:
     void HideFavorites() override;
     void ShowStatistics() override;
     void HideStatistics() override;
+    void ShowMenu() override;
+    void HideMenu() override;
     bool CanDeleteSelected() const override;
     void RequestDeleteSelected() override;
     void CancelDelete() override;

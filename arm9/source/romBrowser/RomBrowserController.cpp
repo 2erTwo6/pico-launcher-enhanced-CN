@@ -261,6 +261,16 @@ void RomBrowserController::HideStatistics()
     _stateMachine.Fire(RomBrowserStateTrigger::HideStatistics);
 }
 
+void RomBrowserController::ShowMenu()
+{
+    _stateMachine.Fire(RomBrowserStateTrigger::ShowMenu);
+}
+
+void RomBrowserController::HideMenu()
+{
+    _stateMachine.Fire(RomBrowserStateTrigger::HideMenu);
+}
+
 void RomBrowserController::HideDisplaySettings()
 {
     if (_saveSettingsPending)
