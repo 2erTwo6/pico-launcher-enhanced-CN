@@ -30,7 +30,7 @@ struct GameDataEntry
 };
 
 /// @brief Orders games by launches, ties by file name regardless of case, so
-///        the crown on the top screen and the statistics panel's list are built
+///        the star on the top screen and the statistics panel's list are built
 ///        from the same rule and never name different games.
 inline bool LaunchedMoreThan(const GameDataEntry& a, const GameDataEntry& b)
 {

@@ -8,7 +8,7 @@
 - The launcher says which build it is: the version at the top-right of the statistics panel,
   and the version with the commit it was built from on the bottom screen while it boots and
   at the bottom-right of the theme selector's top screen, so a report can name the build.
-- A crown above the game's icon marks the most launched game, the one that heads the
+- A gold star above the game's icon marks the most launched game, the one that heads the
   statistics panel's list.
 
 #### Changed

@@ -15,7 +15,7 @@ class IThemeFileIconFactory;
 class FileRecyclerAdapter;
 class IRomBrowserItemViewModel;
 
-// Where the selected game's markers (crown, check, heart, and the launch text
+// Where the selected game's markers (star, check, heart, and the launch text
 // when it is switched on) go. Unless centered, position is the top-right corner
 // of their pill, which grows to the left; centered, it is the middle of the
 // row's top edge. hidden suppresses the pill, its text and its markers entirely.

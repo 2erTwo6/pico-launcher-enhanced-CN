@@ -21,7 +21,7 @@
 #include "../Theme/IRomBrowserViewFactory.h"
 #include "heartMarker.h"
 #include "checkMarker.h"
-#include "crownIcon.h"
+#include "starMarker.h"
 #include "stripChipBg.h"
 #include "RomBrowserTopScreenView.h"
 
@@ -31,10 +31,14 @@
 // so it overstates. The favorite heart and completed check stay on screen.
 #define SHOW_TOP_LAUNCH_INFO_TEXT 0
 
-// Dark amber to bright gold: the crown's own shading. It does not take the
+// Dark amber to bright gold: the star's own shading. It does not take the
 // theme's colours because it is the one marker that is a prize, not a state.
-static const Rgb<8, 8, 8> kCrownOutlineColor(90, 56, 8);
-static const Rgb<8, 8, 8> kCrownFillColor(255, 205, 50);
+static const Rgb<8, 8, 8> kStarOutlineColor(90, 56, 8);
+static const Rgb<8, 8, 8> kStarFillColor(255, 205, 50);
+
+// Markers are 16 px sprites with 12 px of shape inside, laid 15 apart so that
+// three of them read as one group rather than three things in a row.
+#define MARKER_STRIDE 15
 
 RomBrowserTopScreenView::RomBrowserTopScreenView(
     SharedPtr<RomBrowserViewModel> viewModel,
@@ -95,9 +99,9 @@ void RomBrowserTopScreenView::InitVram(const VramContext& vramContext)
         _checkVramOffset = objVramManager->Alloc(checkMarkerTilesLen);
         dma_ntrCopy32(3, checkMarkerTiles,
             objVramManager->GetVramAddress(_checkVramOffset), checkMarkerTilesLen);
-        _crownVramOffset = objVramManager->Alloc(crownIconTilesLen);
-        dma_ntrCopy32(3, crownIconTiles,
-            objVramManager->GetVramAddress(_crownVramOffset), crownIconTilesLen);
+        _starVramOffset = objVramManager->Alloc(starMarkerTilesLen);
+        dma_ntrCopy32(3, starMarkerTiles,
+            objVramManager->GetVramAddress(_starVramOffset), starMarkerTilesLen);
         _chipVramOffset = objVramManager->Alloc(stripChipBgTilesLen);
         dma_ntrCopy32(3, stripChipBgTiles,
             objVramManager->GetVramAddress(_chipVramOffset), stripChipBgTilesLen);
@@ -171,7 +175,7 @@ void RomBrowserTopScreenView::Update()
             RefreshMostPlayed(gameDataVersion);
         _selectedFavorite = false;
         _selectedCompleted = false;
-        _selectedCrowned = false;
+        _selectedStarred = false;
         char info[24];
         info[0] = 0;
         if (selectedItem >= 0)
@@ -187,7 +191,7 @@ void RomBrowserTopScreenView::Update()
             {
                 _selectedFavorite = entry->favorite;
                 _selectedCompleted = entry->completed;
-                _selectedCrowned = _mostPlayedFileName.GetString()[0] != 0 &&
+                _selectedStarred = _mostPlayedFileName.GetString()[0] != 0 &&
                     strcmp(entry->fileName.GetString(), _mostPlayedFileName.GetString()) == 0;
                 if (entry->launchCount > 0)
                 {
@@ -235,7 +239,7 @@ void RomBrowserTopScreenView::Update()
     ViewContainer::Update();
 }
 
-// The crown goes to the game launched most, by the same comparator that orders
+// The star goes to the game launched most, by the same comparator that orders
 // the statistics panel's list (LaunchedMoreThan), so the two never disagree:
 // ties go to the name that sorts first, not to whichever was stored first. Play
 // time is not consulted: it counts the clock, not the game (issue #9).
@@ -271,8 +275,8 @@ void RomBrowserTopScreenView::Draw(GraphicsContext& graphicsContext)
 #endif
 
     // The markers in the order they are laid out, left to right. Centred over
-    // the icon they go crown, heart, check, as the card was mocked up; a pill
-    // keeps the order it always had, check then heart, and gets the crown at
+    // the icon they go star, heart, check, as the card was mocked up; a pill
+    // keeps the order it always had, check then heart, and gets the star at
     // the left of it.
     struct Marker
     {
@@ -284,8 +288,8 @@ void RomBrowserTopScreenView::Draw(GraphicsContext& graphicsContext)
     // The marker sprites are two tones: fill at 15 and a one pixel outline at
     // 1, so the gradient's first colour is the outline's. On the pill it is the
     // pill's own colour and the outline vanishes into it; bare over the theme's
-    // art it is a dark shade of the marker's colour, the way the crown's always
-    // was, and reads as a drawn edge on any background.
+    // art it is a dark shade of the marker's colour, the way the star's is,
+    // and it reads as a drawn edge on any background.
     auto edgeOf = [&](const Rgb<8, 8, 8>& tint)
     {
         if (!_launchInfoBare)
@@ -293,26 +297,26 @@ void RomBrowserTopScreenView::Draw(GraphicsContext& graphicsContext)
         return Rgb<8, 8, 8>(tint.r * 2 / 5, tint.g * 2 / 5, tint.b * 2 / 5);
     };
     const Rgb<8, 8, 8> completedGreen(67, 160, 71);
-    const Marker crown = { _selectedCrowned && !hidden, _crownVramOffset, kCrownOutlineColor, kCrownFillColor };
+    const Marker star = { _selectedStarred && !hidden, _starVramOffset, kStarOutlineColor, kStarFillColor };
     const Marker heart = { _selectedFavorite && !hidden, _heartVramOffset,
         edgeOf(_materialColorScheme->primary), _materialColorScheme->primary };
     const Marker check = { _selectedCompleted && !hidden, _checkVramOffset,
         edgeOf(completedGreen), completedGreen };
-    Marker markers[3] = { crown, check, heart };
+    Marker markers[3] = { star, check, heart };
     if (_launchInfoCentered)
     {
         markers[1] = heart;
         markers[2] = check;
     }
 
-    int clusterWidth = 0;
-    if (launchInfoWidth > 0)
-        clusterWidth += launchInfoWidth + 2;
+    int markerCount = 0;
     for (const auto& marker : markers)
         if (marker.show)
-            clusterWidth += 16 + 2;
-    if (clusterWidth > 0)
-        clusterWidth -= 2;
+            markerCount++;
+    // the text, a 2 px gap if markers follow it, then the markers at their stride
+    int clusterWidth = launchInfoWidth > 0 ? (int)launchInfoWidth : 0;
+    if (markerCount > 0)
+        clusterWidth += (clusterWidth > 0 ? 2 : 0) + 16 + (markerCount - 1) * MARKER_STRIDE;
 
     // Icons sit one pixel down inside the 18 px pill, and on the point itself
     // when bare.
@@ -343,7 +347,7 @@ void RomBrowserTopScreenView::Draw(GraphicsContext& graphicsContext)
         if (!markers[i].show)
             continue;
         markerX[i] = x;
-        x += 16 + 2;
+        x += MARKER_STRIDE;
     }
     // the labels draw after the chips and therefore get lower oam indices,
     // which puts them in front

@@ -53,11 +53,11 @@ private:
     bool _launchInfoHidden = false;
     u32 _heartVramOffset = 0;
     u32 _checkVramOffset = 0;
-    u32 _crownVramOffset = 0;
+    u32 _starVramOffset = 0;
     u32 _chipVramOffset = 0;
     bool _selectedFavorite = false;
     bool _selectedCompleted = false;
-    bool _selectedCrowned = false;
+    bool _selectedStarred = false;
     bool _launchInfoCentered = false;
     bool _launchInfoBare = false;
     // The most launched game's file name, refreshed when the game data changes.
