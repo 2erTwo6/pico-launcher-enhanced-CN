@@ -59,8 +59,8 @@
 static const struct { const char* button; const char* action; } kCommands[] =
 {
     { "X",        "favorite. hold: completed" },
-    { "Y",        "cheats and game info" },
-    { "L R",      "jump to the next initial" },
+    { "Y",        "cheats for this game" },
+    { "L R",      "previous or next initial" },
     { "SELECT+A", "random game in this folder" },
     { "START",    "hold: save a screenshot" },
     { "B",        "folder up, or close a panel" },

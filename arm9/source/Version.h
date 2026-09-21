@@ -15,7 +15,7 @@
 #endif
 
 /// @brief The repository the build came from, as "owner/repo", from the remote
-///        the built branch tracks. Empty when git could not say.
+///        the built branch tracks, or the only remote. Empty when git could not say.
 #ifndef LAUNCHER_REPO
 #define LAUNCHER_REPO ""
 #endif

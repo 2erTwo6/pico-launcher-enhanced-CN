@@ -37,11 +37,17 @@ ifneq ($(strip $(GIT_HASH)),)
 endif
 
 # The repository the build comes from, as owner/repo, for the about sheet: the
-# remote the branch tracks, or origin when it tracks none. A fork that builds
-# its own tree names itself here, which is the point.
+# remote the branch tracks, or the only remote when it tracks none. A fork that
+# builds its own tree names itself here, which is the point. With several
+# remotes and no tracking branch there is no telling, so nothing is said rather
+# than something wrong: a tree with upstream as origin must not stamp the
+# fork's build as upstream's.
 GIT_REMOTE	:= $(shell git rev-parse --abbrev-ref --symbolic-full-name @{u} 2>/dev/null | cut -d/ -f1)
 ifeq ($(strip $(GIT_REMOTE)),)
-    GIT_REMOTE	:= origin
+    GIT_REMOTES	:= $(shell git remote 2>/dev/null)
+    ifeq ($(words $(GIT_REMOTES)),1)
+        GIT_REMOTE	:= $(GIT_REMOTES)
+    endif
 endif
 GIT_REPO	:= $(shell git remote get-url $(GIT_REMOTE) 2>/dev/null | sed -E 's|\.git$$||; s|^.*[:/]([^/:]+/[^/]+)$$|\1|')
 ifneq ($(strip $(GIT_REPO)),)
