@@ -6,11 +6,13 @@
 
 A feature fork of [Pico Launcher](https://github.com/LNH-team/pico-launcher) by the LNH team, adding library features inspired by modern consoles — favorites, play stats, recently played, and more — while staying fully compatible with stock SD cards: it is a drop-in `_picoboot.nds` replacement, and all upstream features remain intact.
 
-![Cover flow in the Material theme: a favorite, completed game, with the heart and check markers above its icon](docs/images/enhanced/Coverflow.png)
-![Icon grid in the Material theme, with the highlighted game's cover on the top screen](docs/images/enhanced/Grid.png)
+![Cover flow in the Material theme: the most launched game, a favorite and completed, with its star, heart and check above the icon](docs/images/enhanced/Coverflow.png)
+![Icon grid in the Material theme: the most launched game, a favorite and completed, with its star, heart and check above the icon](docs/images/enhanced/Grid.png)
 ![A custom theme: the game markers sit above the game's icon, drawn to read on any art](docs/images/enhanced/CustomTheme.png)
 ![The favorites panel, every favorite across all folders with its play time](docs/images/enhanced/Favorites.png)
 ![The statistics panel: totals, most launched games and the last one played](docs/images/enhanced/Statistics.png)
+![The menu: recently played, favorites, statistics, delete game, and the two filters with their state](docs/images/enhanced/Menu.png)
+![The about sheet: Pico Launcher by the LNH team, Enhanced by rasalopa, where the build came from, and a cheat sheet of the controls](docs/images/enhanced/About.png)
 
 *Taken on the console with the launcher's own screenshot key (hold START).*
 
@@ -19,6 +21,7 @@ A feature fork of [Pico Launcher](https://github.com/LNH-team/pico-launcher) by 
 Everything upstream Pico Launcher offers (display modes, [custom icons, banners & covers](docs/Customization.md) for games *and folders*, [themes](docs/Themes.md), [cheats](docs/Cheats.md), [file associations](docs/FileAssociations.md) — see [Usage](docs/Usage.md)), plus:
 
 - **A menu instead of a row of icons** — the app bar keeps back and display settings and gains a three-dot button; recently played, favorites, statistics, deletion and the two filters live in the sheet it opens, each with its name
+- **About sheet** — from the menu's title row: who made what, the exact build and the repository it came from, and a cheat sheet of the controls that have no button
 - **Jump by initial** — press L or R to jump to the next initial letter in a folder sorted by name; the letter you land on shows for a moment at the bottom of the touch screen
 - **Game count** of the current folder, at the top of the statistics panel
 - **Random game launch** with SELECT + A

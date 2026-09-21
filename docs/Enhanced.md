@@ -18,6 +18,8 @@ These controls are available in the rom browser, on top of the standard ones (se
 ## The menu
 The app bar has three buttons: back, the menu (three dots) and display settings. The menu opens a sheet with everything the bar used to hold as icons, each with its name: **Recently played**, **Favorites**, **Statistics** and **Delete game** in two columns, and under them the two filters, **Only favorites** and **Only completed**, each saying `on` or `off`. Tap an entry, or highlight it with the d-pad and press A. Picking a panel closes the menu and opens the panel in its place; a filter applies at once and closes the menu. B, or a tap outside the sheet, closes it. Nothing sits behind a long press any more.
 
+The small button at the right of the menu's title opens the **about** sheet: Pico Launcher by the LNH team on one side, Enhanced by rasalopa on the other, then the version with the commit it was built from and the repository the build came from, and a cheat sheet of the controls that have no button of their own, three at a time; up and down scroll it. A build made from another repository names that repository there, so you can always tell where a build came from.
+
 ## Jumping by initial
 In a folder with hundreds of games, paging through the list a screen at a time takes a
 while. L and R now jump to where the previous or next initial starts, so crossing a large

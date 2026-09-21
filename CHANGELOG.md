@@ -5,6 +5,11 @@
 ### [Unreleased]
 
 #### Added
+- An about sheet, behind the small button in the menu's title row: Pico Launcher by the LNH
+  team on one side and Enhanced by rasalopa on the other, the version with its commit and the
+  repository the build came from, and a cheat sheet of the controls that have no button of
+  their own. A build from another repository names that repository, so a build always says
+  where it came from.
 - The launcher says which build it is: the version at the top-right of the statistics panel,
   and the version with the commit it was built from on the bottom screen while it boots and
   at the bottom-right of the theme selector's top screen, so a report can name the build.

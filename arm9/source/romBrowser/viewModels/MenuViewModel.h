@@ -21,6 +21,8 @@ public:
     void ToggleCompletedFilter() { _romBrowserController->ToggleCompletedFilter(); }
     bool IsCompletedFilterEnabled() const { return _romBrowserController->IsCompletedFilterEnabled(); }
 
+    void ShowAbout() { _romBrowserController->ShowAbout(); }
+
     void Close() { _romBrowserController->HideMenu(); }
 
 private:

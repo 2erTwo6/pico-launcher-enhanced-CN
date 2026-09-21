@@ -46,6 +46,8 @@ public:
     void HideStatistics() override;
     void ShowMenu() override;
     void HideMenu() override;
+    void ShowAbout() override;
+    void HideAbout() override;
     bool CanDeleteSelected() const override;
     void RequestDeleteSelected() override;
     void CancelDelete() override;

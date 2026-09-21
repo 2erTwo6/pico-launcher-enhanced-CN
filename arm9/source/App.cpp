@@ -29,6 +29,7 @@
 #include "romBrowser/views/statistics/StatisticsBottomSheetView.h"
 #include "romBrowser/views/deleteconfirm/DeleteConfirmBottomSheetView.h"
 #include "romBrowser/views/menu/MenuBottomSheetView.h"
+#include "romBrowser/views/about/AboutBottomSheetView.h"
 #include "romBrowser/views/DisplaySettingsBottomSheetView.h"
 #include "bgm/AudioStreamPlayer.h"
 #include "bgm/BgmService.h"
@@ -417,6 +418,16 @@ void App::HandleTrigger(RomBrowserStateTrigger trigger, RomBrowserState newState
             HandleHideMenuTrigger();
             break;
         }
+        case RomBrowserStateTrigger::ShowAbout:
+        {
+            HandleShowAboutTrigger();
+            break;
+        }
+        case RomBrowserStateTrigger::HideAbout:
+        {
+            HandleHideAboutTrigger();
+            break;
+        }
         case RomBrowserStateTrigger::Navigate:
         {
             HandleNavigateTrigger();
@@ -544,7 +555,24 @@ void App::HandleShowMenuTrigger()
     auto menuViewModel = SharedPtr<MenuViewModel>::MakeShared(&_romBrowserController);
     auto menuDialog = MenuBottomSheetView::CreateShared(
         std::move(menuViewModel), &_theme->GetMaterialColorScheme(), _theme->GetFontRepository());
+    menuDialog->SetGraphics(_iconButtonViewVram);
     _dialogPresenter.ShowDialog(std::move(menuDialog));
+}
+
+void App::HandleShowAboutTrigger()
+{
+    CloseSheetIfLeavingMenu();
+    auto aboutViewModel = SharedPtr<AboutViewModel>::MakeShared(&_romBrowserController);
+    auto aboutDialog = AboutBottomSheetView::CreateShared(
+        std::move(aboutViewModel), &_theme->GetMaterialColorScheme(), _theme->GetFontRepository());
+    _dialogPresenter.ShowDialog(std::move(aboutDialog));
+}
+
+void App::HandleHideAboutTrigger()
+{
+    _dialogPresenter.CloseDialog();
+    if (!_dialogPresenter.GetOldFocus())
+        _romBrowserBottomScreenView->Focus(_focusManager);
 }
 
 void App::HandleHideMenuTrigger()

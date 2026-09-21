@@ -36,6 +36,18 @@ ifneq ($(strip $(GIT_HASH)),)
     DEFINES	+= -DLAUNCHER_BUILD=\"$(GIT_HASH)\"
 endif
 
+# The repository the build comes from, as owner/repo, for the about sheet: the
+# remote the branch tracks, or origin when it tracks none. A fork that builds
+# its own tree names itself here, which is the point.
+GIT_REMOTE	:= $(shell git rev-parse --abbrev-ref --symbolic-full-name @{u} 2>/dev/null | cut -d/ -f1)
+ifeq ($(strip $(GIT_REMOTE)),)
+    GIT_REMOTE	:= origin
+endif
+GIT_REPO	:= $(shell git remote get-url $(GIT_REMOTE) 2>/dev/null | sed -E 's|\.git$$||; s|^.*[:/]([^/:]+/[^/]+)$$|\1|')
+ifneq ($(strip $(GIT_REPO)),)
+    DEFINES	+= -DLAUNCHER_REPO=\"$(GIT_REPO)\"
+endif
+
 # Libraries
 # ---------
 

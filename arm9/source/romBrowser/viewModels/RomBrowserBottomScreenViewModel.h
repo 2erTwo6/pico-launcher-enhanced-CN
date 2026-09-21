@@ -25,6 +25,7 @@ public:
             || state == RomBrowserState::Statistics
             || state == RomBrowserState::DeleteConfirm
             || state == RomBrowserState::Menu
+            || state == RomBrowserState::About
             || state == RomBrowserState::Launching
             || state == RomBrowserState::GoingToSettingsScreen;
     }

@@ -44,6 +44,9 @@ public:
     /// @brief The menu behind the app bar's "more" button.
     virtual void ShowMenu() = 0;
     virtual void HideMenu() = 0;
+    /// @brief The about sheet, reached from the menu.
+    virtual void ShowAbout() = 0;
+    virtual void HideAbout() = 0;
     /// @brief Whether the highlighted entry can be deleted at all. Folders and
     ///        support files cannot, so the app bar dims its delete button rather
     ///        than offering one that does nothing.

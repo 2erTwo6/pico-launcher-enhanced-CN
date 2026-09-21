@@ -16,11 +16,17 @@
 #include "trashIcon.h"
 #include "heartIcon.h"
 #include "checkIcon.h"
+#include "infoIcon.h"
 #include "MenuBottomSheetView.h"
 
 // Placed from the sheet's top edge, which rests at y 32 once the sheet is open.
 #define TITLE_X             20
 #define TITLE_Y             16
+
+// The about button shares the title row, where the display settings sheet
+// keeps its theme button.
+#define ABOUT_BUTTON_X      212
+#define ABOUT_BUTTON_Y      (TITLE_Y - 7)
 
 // Two cells per row over the 224 px the recents list uses, then two full rows.
 // Rows sit 26 apart so the 24 px items keep a hairline between them; the last
@@ -172,6 +178,17 @@ MenuBottomSheetView::MenuBottomSheetView(SharedPtr<MenuViewModel> viewModel,
     _titleLabel->SetText("Menu");
     AddChildTail(_titleLabel.GetPointer());
 
+    _aboutButton = IconButton2DView::CreateShared(
+        IconButtonView::Type::Standard,
+        IconButtonView::State::NoToggle,
+        md::sys::color::inverseOnSurface,
+        materialColorScheme);
+    _aboutButton->SetAction([] (IconButtonView*, void* arg)
+    {
+        ((MenuBottomSheetView*)arg)->_viewModel->ShowAbout();
+    }, this);
+    AddChildTail(_aboutButton.GetPointer());
+
     static const struct { const char* name; bool filter; } kEntries[ITEM_COUNT] =
     {
         { "Recently played", false },
@@ -201,6 +218,7 @@ void MenuBottomSheetView::InitVram(const VramContext& vramContext)
         { recentIconTiles, smallHeartIconFilledTiles, statsIconTiles, trashIconTiles, heartIconTiles, checkIconTiles };
     static const u32 kTilesLength[ITEM_COUNT] =
         { recentIconTilesLen, smallHeartIconFilledTilesLen, statsIconTilesLen, trashIconTilesLen, heartIconTilesLen, checkIconTilesLen };
+    _aboutButton->SetIconVramOffset(LoadSprite(*objVramManager, infoIconTiles, infoIconTilesLen));
     u32 selectorVramOffset = LoadSprite(*objVramManager, cheatSelectorTiles, cheatSelectorTilesLen);
     for (int i = 0; i < ITEM_COUNT; i++)
     {
@@ -220,6 +238,7 @@ void MenuBottomSheetView::Update()
 {
     int y = _position.y;
     _titleLabel->SetPosition(TITLE_X, y + TITLE_Y);
+    _aboutButton->SetPosition(ABOUT_BUTTON_X, y + ABOUT_BUTTON_Y);
     for (int i = 0; i < ITEM_COUNT; i++)
     {
         // two rows of two cells, then the filters as the third and fourth row
@@ -260,6 +279,12 @@ bool MenuBottomSheetView::HandleInput(const InputProvider& inputProvider, FocusM
 SharedPtr<View> MenuBottomSheetView::MoveFocus(const SharedPtr<View>& currentFocus,
     FocusMoveDirection direction, View* source)
 {
+    if (currentFocus.GetPointer() == _aboutButton.GetPointer())
+    {
+        if (direction == FocusMoveDirection::Down)
+            return _items[ITEM_FAVORITES];
+        return nullptr;
+    }
     int idx = -1;
     for (int i = 0; i < ITEM_COUNT; i++)
     {
@@ -288,7 +313,7 @@ SharedPtr<View> MenuBottomSheetView::MoveFocus(const SharedPtr<View>& currentFoc
                 return _items[ITEM_STATISTICS];
             if (idx >= 2)
                 return _items[idx - 2];
-            break;
+            return _aboutButton;
         case FocusMoveDirection::Down:
             if (idx == ITEM_FAVORITES_FILTER)
                 return _items[ITEM_COMPLETED_FILTER];
@@ -299,6 +324,11 @@ SharedPtr<View> MenuBottomSheetView::MoveFocus(const SharedPtr<View>& currentFoc
             break;
     }
     return nullptr;
+}
+
+void MenuBottomSheetView::SetGraphics(const IconButton2DView::VramToken& iconButtonVramToken)
+{
+    _aboutButton->SetGraphics(iconButtonVramToken);
 }
 
 void MenuBottomSheetView::Focus(FocusManager& focusManager)

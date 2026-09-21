@@ -14,8 +14,15 @@
 #define LAUNCHER_BUILD ""
 #endif
 
+/// @brief The repository the build came from, as "owner/repo", from the remote
+///        the built branch tracks. Empty when git could not say.
+#ifndef LAUNCHER_REPO
+#define LAUNCHER_REPO ""
+#endif
+
 extern const char kLauncherVersion[];
 extern const char kLauncherBuild[];
+extern const char kLauncherRepo[];
 
 /// @brief Writes "v1.8.0", or "v1.8.0 (f2e5642+)" when asked for the build and
 ///        there is one, so every screen that names the build spells it the same.

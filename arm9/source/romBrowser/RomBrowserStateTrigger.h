@@ -21,5 +21,7 @@ enum class RomBrowserStateTrigger
     ShowDeleteConfirm,
     HideDeleteConfirm,
     ShowMenu,
-    HideMenu
+    HideMenu,
+    ShowAbout,
+    HideAbout
 };

@@ -3,6 +3,7 @@
 #include "core/math/Rgb.h"
 #include "romBrowser/views/BottomSheetView.h"
 #include "gui/views/Label2DView.h"
+#include "romBrowser/views/IconButton2DView.h"
 #include "romBrowser/viewModels/MenuViewModel.h"
 
 class MaterialColorScheme;
@@ -73,7 +74,8 @@ private:
 /// Recently played, favorites, statistics and delete in two columns, then the
 /// two filters as full rows that say whether they are on. Picking a panel
 /// replaces this sheet with it; a filter closes the sheet through the display
-/// mode change it triggers; delete is faded while a folder is highlighted.
+/// mode change it triggers; delete is faded while a folder is highlighted. A
+/// small button at the right of the title opens the about sheet.
 class MenuBottomSheetView : public BottomSheetView
 {
     SHARED_ONLY(MenuBottomSheetView)
@@ -89,6 +91,8 @@ public:
 
     /// @brief Runs the entry at index; the items call this on A or a tap.
     void Activate(int index);
+
+    void SetGraphics(const IconButton2DView::VramToken& iconButtonVramToken);
 
 protected:
     void Close() override;
@@ -108,6 +112,7 @@ private:
     SharedPtr<MenuViewModel> _viewModel;
     const MaterialColorScheme* _materialColorScheme;
     SharedPtr<Label2DView> _titleLabel;
+    SharedPtr<IconButton2DView> _aboutButton;
     SharedPtr<MenuItemView> _items[ITEM_COUNT];
 
     MenuBottomSheetView(SharedPtr<MenuViewModel> viewModel,
