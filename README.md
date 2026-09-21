@@ -18,19 +18,20 @@ A feature fork of [Pico Launcher](https://github.com/LNH-team/pico-launcher) by 
 
 Everything upstream Pico Launcher offers (display modes, [custom icons, banners & covers](docs/Customization.md) for games *and folders*, [themes](docs/Themes.md), [cheats](docs/Cheats.md), [file associations](docs/FileAssociations.md) — see [Usage](docs/Usage.md)), plus:
 
+- **A menu instead of a row of icons** — the app bar keeps back and display settings and gains a three-dot button; recently played, favorites, statistics, deletion and the two filters live in the sheet it opens, each with its name
 - **Jump by initial** — press L or R to jump to the next initial letter in a folder sorted by name; the letter you land on shows for a moment at the bottom of the touch screen
 - **Game count** of the current folder, at the top of the statistics panel
 - **Random game launch** with SELECT + A
 - **Favorites** — press X on a game; a heart shows on the top screen
 - **Completed games** — hold X on a game; a green check shows on the top screen
-- **Favorites and completed filters** — heart and check buttons in the app bar, tinted while active
-- **Favorites panel** — hold the heart button to see every favorite across all folders; tapping one jumps to it
-- **Recently played panel** — clock button in the app bar; tapping an entry jumps to the game
-- **Statistics panel** — hold the clock button for totals, most-played games and the launcher version
+- **Favorites and completed filters** — Only favorites and Only completed in the menu, each saying when it is on
+- **Favorites panel** — every favorite across all folders, from the menu; tapping one jumps to it
+- **Recently played panel** — from the menu; tapping an entry jumps to the game
+- **Statistics panel** — totals, most-played games and the launcher version, from the menu
 - **Screenshots** — hold START for about half a second to save both screens to `/_pico/screenshots`
 - **Per-game launch tracking** — launch count and last-played date, kept per game; the recently played panel shows each game's date, and the statistics panel the counts of the three most launched games
 - **Approximate play time** — per game, in the favorites panel
-- **Game deletion** — trash button with confirmation; removes the ROM and its save
+- **Game deletion** — from the menu, with confirmation; removes the ROM and its save
 - **Brightness control** — set the DS Lite's backlight level from display settings
 - **Hide empty folders** — optional; folders with nothing playable inside are left out of the listing
 - **Cheats list that reads better** — the list wraps around at both ends, and X turns every cheat off at once

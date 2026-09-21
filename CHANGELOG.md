@@ -12,6 +12,11 @@
   statistics panel's list.
 
 #### Changed
+- The app bar is back to three buttons: back, a three-dot menu and display settings. Recently
+  played, favorites, statistics, delete game and the favorites and completed filters moved into
+  the sheet the menu opens, each with its name, and the two filters say `on` or `off` there.
+  The long presses on the clock and the heart went with their buttons, so nothing is hidden
+  behind a hold any more. Picking a panel from the menu opens it in the menu's place.
 - The theme selector opens on the theme you are using instead of the first one in the list,
   so a long list no longer has to be scrolled to find it (fixes #17).
 - The letter an L/R jump lands on now appears for a moment at the bottom of the touch

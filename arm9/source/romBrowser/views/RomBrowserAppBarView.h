@@ -12,7 +12,6 @@ class RomBrowserAppBarView : public ViewContainer
 
 public:
     void InitVram(const VramContext& vramContext) override;
-    void Update() override;
 
     Rectangle GetBounds() const override
     {
@@ -31,10 +30,10 @@ private:
     {
         APP_BAR_BUTTON_BACK = 0,
 
-        APP_BAR_BUTTON_RECENT,
-        APP_BAR_BUTTON_FAVORITE,
-        APP_BAR_BUTTON_COMPLETED,
-        APP_BAR_BUTTON_DELETE,
+        // Recents, the favorites and completed filters, delete and the panels
+        // that sat behind long presses are all written out in the menu this
+        // button opens, so the bar is back to three.
+        APP_BAR_BUTTON_MENU,
         APP_BAR_BUTTON_DISPLAY_SETTINGS,
         // APP_BAR_BUTTON_SETTINGS
     };

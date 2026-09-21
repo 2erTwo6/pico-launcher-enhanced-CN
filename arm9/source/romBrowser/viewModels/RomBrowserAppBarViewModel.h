@@ -13,54 +13,14 @@ public:
         _romBrowserController->NavigateUp();
     }
 
+    void ShowMenu()
+    {
+        _romBrowserController->ShowMenu();
+    }
+
     void ShowDisplaySettings()
     {
         _romBrowserController->ShowDisplaySettings();
-    }
-
-    void ToggleFavoritesFilter()
-    {
-        _romBrowserController->ToggleFavoritesFilter();
-    }
-
-    bool IsFavoritesFilterEnabled() const
-    {
-        return _romBrowserController->IsFavoritesFilterEnabled();
-    }
-
-    void ToggleCompletedFilter()
-    {
-        _romBrowserController->ToggleCompletedFilter();
-    }
-
-    bool IsCompletedFilterEnabled() const
-    {
-        return _romBrowserController->IsCompletedFilterEnabled();
-    }
-
-    bool CanDeleteSelected() const
-    {
-        return _romBrowserController->CanDeleteSelected();
-    }
-
-    void ShowRecents()
-    {
-        _romBrowserController->ShowRecents();
-    }
-
-    void ShowFavorites()
-    {
-        _romBrowserController->ShowFavorites();
-    }
-
-    void ShowStatistics()
-    {
-        _romBrowserController->ShowStatistics();
-    }
-
-    void RequestDeleteSelected()
-    {
-        _romBrowserController->RequestDeleteSelected();
     }
 
     constexpr RomBrowserLayout GetRomBrowserLayout() const
