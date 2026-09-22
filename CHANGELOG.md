@@ -4,6 +4,69 @@
 
 ### [Unreleased]
 
+#### Changed
+- The icon buttons' selector VRAM offset starts at zero instead of whatever was in memory. Nothing
+  drew before it was set, so nothing changes on screen; it is an uninitialised member less. From
+  marlooonxdd (#24).
+
+#### Changed (Chinese fork)
+- Merged upstream `enhanced-v1.7.0` and `enhanced-v1.8.0`: the app bar is three buttons with a
+  menu sheet, an about sheet sits behind its title row, a gold star marks the most launched
+  game, the statistics panel is redrawn as four figures with a most-played list, the launcher
+  version shows on the boot screen, in the theme selector and in the statistics panel, and the
+  L/R jump letter moved from the top screen's chip to a toast on the touch screen.
+- Every new screen is in Simplified Chinese with it: the menu and its entries, the about sheet
+  and its cheat sheet, the statistics panel's tiles, and the filters' `on`/`off` states.
+- The L/R jump toast shows a Chinese folder's actual first Han character instead of the first
+  byte of its UTF-8 name, the same handling the game-count chip had before the letter moved.
+
+### [enhanced-v1.8.0]
+
+#### Added
+- An about sheet, behind the small button in the menu's title row: Pico Launcher by the LNH
+  team on one side and Enhanced by rasalopa on the other, the version with its commit and the
+  repository the build came from, and a cheat sheet of the controls that have no button of
+  their own. A build from another repository names that repository, so a build always says
+  where it came from.
+- The launcher says which build it is: the version at the top-right of the statistics panel,
+  and the version with the commit it was built from on the bottom screen while it boots and
+  at the bottom-right of the theme selector's top screen, so a report can name the build.
+- A gold star above the game's icon marks the most launched game, the one that heads the
+  statistics panel's list.
+
+#### Changed
+- The app bar is down to three buttons: back, a three-dot menu and display settings, from the
+  six the fork had grown to (upstream has two). Recently
+  played, favorites, statistics, delete game and the favorites and completed filters moved into
+  the sheet the menu opens, each with its name, and the two filters say `on` or `off` there.
+  The long presses on the clock and the heart went with their buttons, so no app bar button
+  hides a second action behind a hold any more. Picking a panel from the menu opens it in the
+  menu's place.
+- The theme selector opens on the theme you are using instead of the first one in the list,
+  so a long list no longer has to be scrolled to find it (fixes #17).
+- The letter an L/R jump lands on now appears for a moment at the bottom of the touch
+  screen, the same way the screenshot message does, instead of replacing the game count on
+  the top screen. It shows on every theme, including the ones that hide the count.
+- The game count left the top-left of the top screen and heads the statistics panel instead,
+  as the count of the folder you are in. Themes that position or hide `topGameCount` keep
+  loading; the key is ignored now (#18).
+- The launch count and play time at the top-right of the top screen are switched off. The time
+  counted the clock while a game was open, not play (#9), so it overstated. The code is kept
+  behind a switch for when the counting is fixed.
+- The favorite and completed markers left the top-right of the top screen and now sit above
+  the game's icon, astride the card's top edge, without the pill, drawn as crisp pixel shapes
+  with an outline so they read on any theme. A custom theme that does not place them itself
+  gets them above its icon the same way; one that sets `topLaunchInfo` keeps its pill where
+  it put it.
+- The statistics panel drops its total launches and play time line for the same reason, kept
+  behind a switch the same way. The three most launched games keep their launch counts.
+- The statistics panel was redrawn: a row of four figures with an icon each (games in the
+  folder, played, favorites, completed), the three most launched games in a list with the
+  counts against the right edge, and the last game played next to the clock icon. Names
+  show without their file extension there.
+
+### [enhanced-v1.7.0]
+
 #### Added
 - The launcher UI is now in Simplified Chinese, including all numerals and Latin
   text, drawn with a WenQuanYi Bitmap Song dot-matrix font. The old proportional

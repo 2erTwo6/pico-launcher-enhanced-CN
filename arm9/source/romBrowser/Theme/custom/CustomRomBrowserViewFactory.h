@@ -71,16 +71,18 @@ public:
         return _customThemeInfo->topCoverInfo.GetPosition();
     }
 
-    TopStripElementLayout GetTopGameCountLayout() const override
-    {
-        return { _customThemeInfo->topGameCountInfo.GetPosition(),
-            _customThemeInfo->topGameCountInfo.GetIsHidden() };
-    }
-
     TopStripElementLayout GetTopLaunchInfoLayout() const override
     {
-        return { _customThemeInfo->topLaunchInfoInfo.GetPosition(),
-            _customThemeInfo->topLaunchInfoInfo.GetIsHidden() };
+        const auto& info = _customThemeInfo->topLaunchInfoInfo;
+        if (info.IsSpecified())
+            return { info.GetPosition(), info.GetIsHidden() };
+        // Not placed by the theme: centred over the icon the theme does place,
+        // bare, where Material puts its own. 18 px up was set by eye on Basic
+        // Gray, whose card edge runs 13 px above its icon, so the markers sit
+        // astride that edge rather than over the icon; the shipped themes put
+        // their edge 10 to 13 px above the icon and all read fine with it.
+        const auto& icon = _customThemeInfo->topIconInfo.GetPosition();
+        return { Point(icon.x + 16, icon.y - 18), false, true, true };
     }
 
     void LoadResources(const ITheme& theme, const VramContext& mainVramContext);

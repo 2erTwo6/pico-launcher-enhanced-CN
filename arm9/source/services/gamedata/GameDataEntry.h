@@ -1,4 +1,5 @@
 #pragma once
+#include <string.h>
 #include "core/String.h"
 
 /// @brief Persisted data for ONE rom file, keyed by its file name (same
@@ -27,3 +28,13 @@ struct GameDataEntry
     ///        launched. Used by the recents list to navigate back to it.
     String<char, 256> path;
 };
+
+/// @brief Orders games by launches, ties by file name regardless of case, so
+///        the star on the top screen and the statistics panel's list are built
+///        from the same rule and never name different games.
+inline bool LaunchedMoreThan(const GameDataEntry& a, const GameDataEntry& b)
+{
+    return a.launchCount > b.launchCount ||
+        (a.launchCount == b.launchCount &&
+            strcasecmp(a.fileName.GetString(), b.fileName.GetString()) < 0);
+}

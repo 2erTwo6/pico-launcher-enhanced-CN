@@ -26,7 +26,6 @@
 #define KEY_TOP_BANNER_TEXT_LINE_2      "topBannerTextLine2"
 #define KEY_TOP_FILE_NAME_TEXT          "topFileNameText"
 #define KEY_TOP_COVER                   "topCover"
-#define KEY_TOP_GAME_COUNT              "topGameCount"
 #define KEY_TOP_LAUNCH_INFO             "topLaunchInfo"
 #define KEY_GRID_ICON                   "gridIcon"
 #define KEY_BANNER_LIST_ICON            "bannerListIcon"
@@ -48,9 +47,11 @@ static const CustomThemeInfo sDefaultCustomThemeInfo
     .topBannerTextLine2Info = CustomTopTextElementInfo(Point(70, 155), 176, Rgb8(30, 30, 30), Rgb8(200, 200, 200)),
     .topFileNameTextInfo = CustomTopTextElementInfo(Point(18, 170), 220, Rgb8(30, 30, 30), Rgb8(200, 200, 200)),
     .topCoverInfo = CustomTopCoverInfo(Point(75, 18)),
-    // top-left corner of the game count pill / top-right corner of the launch info pill
-    .topGameCountInfo = CustomTopStripElementInfo(Point(4, 2), false),
-    .topLaunchInfoInfo = CustomTopStripElementInfo(Point(252, 2), false),
+    // Only reached when the theme sets "topLaunchInfo" itself: then it is the
+    // top-right corner of the markers' pill. Unset, the view factory puts the
+    // markers at the theme's icon instead. A "topGameCount" key in an older
+    // theme is simply not looked at any more.
+    .topLaunchInfoInfo = CustomTopStripElementInfo(Point(252, 2), false, false),
 
     .gridIconInfo = CustomBottomIconInfo(Rgb8(200, 200, 200)),
 
@@ -152,7 +153,8 @@ static CustomTopStripElementInfo parseCustomTopStripElementInfo(
 
     return CustomTopStripElementInfo(
         parsePoint(json[KEY_ELEMENT_POSITION], defaultInfo.GetPosition()),
-        json[KEY_ELEMENT_HIDDEN] | defaultInfo.GetIsHidden()
+        json[KEY_ELEMENT_HIDDEN] | defaultInfo.GetIsHidden(),
+        true
     );
 }
 
@@ -186,8 +188,6 @@ static CustomThemeInfo parseCustomThemeInfo(const JsonDocument& json)
         .topFileNameTextInfo = parseCustomTextElementInfo(
             json[KEY_TOP_FILE_NAME_TEXT], sDefaultCustomThemeInfo.topFileNameTextInfo),
         .topCoverInfo = parseCustomTopCoverInfo(json[KEY_TOP_COVER], sDefaultCustomThemeInfo.topCoverInfo),
-        .topGameCountInfo = parseCustomTopStripElementInfo(
-            json[KEY_TOP_GAME_COUNT], sDefaultCustomThemeInfo.topGameCountInfo),
         .topLaunchInfoInfo = parseCustomTopStripElementInfo(
             json[KEY_TOP_LAUNCH_INFO], sDefaultCustomThemeInfo.topLaunchInfoInfo),
 

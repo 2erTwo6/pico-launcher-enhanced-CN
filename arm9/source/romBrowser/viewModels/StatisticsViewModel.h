@@ -1,6 +1,7 @@
 #pragma once
 #include <string.h>
 #include "../IRomBrowserController.h"
+#include "RomBrowserViewModel.h"
 #include "services/gamedata/IGameDataService.h"
 
 #define STATISTICS_TOP_COUNT   3
@@ -15,6 +16,10 @@ public:
     explicit StatisticsViewModel(IRomBrowserController* romBrowserController)
         : _romBrowserController(romBrowserController)
     {
+        // The folder being browsed, not the whole card: the same number the
+        // top screen used to show in its corner.
+        _folderGameCount = romBrowserController->GetRomBrowserViewModel()->GetFileInfoManager().GetGameCount();
+
         const auto* gameDataService = romBrowserController->GetGameDataService();
         u32 entryCount = gameDataService->GetEntryCount();
         const GameDataEntry* top[STATISTICS_TOP_COUNT] = {};
@@ -33,7 +38,7 @@ public:
             _totalPlayMinutes += entry.playMinutes;
             for (u32 t = 0; t < STATISTICS_TOP_COUNT; t++)
             {
-                if (!top[t] || entry.launchCount > top[t]->launchCount)
+                if (!top[t] || LaunchedMoreThan(entry, *top[t]))
                 {
                     for (u32 m = STATISTICS_TOP_COUNT - 1; m > t; m--)
                         top[m] = top[m - 1];
@@ -53,6 +58,7 @@ public:
             _lastPlayed = *last;
     }
 
+    u32 GetFolderGameCount() const { return _folderGameCount; }
     u32 GetPlayedCount() const { return _playedCount; }
     u32 GetFavoriteCount() const { return _favoriteCount; }
     u32 GetCompletedCount() const { return _completedCount; }
@@ -69,6 +75,7 @@ public:
 
 private:
     IRomBrowserController* _romBrowserController;
+    u32 _folderGameCount = 0;
     u32 _playedCount = 0;
     u32 _favoriteCount = 0;
     u32 _completedCount = 0;

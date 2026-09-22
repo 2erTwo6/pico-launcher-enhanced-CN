@@ -75,6 +75,13 @@ public:
         return _curState != State::Idle;
     }
 
+    /// @brief True while one sheet is on its way out with the next already
+    ///        waiting - the menu handing over to the panel picked from it.
+    bool IsSwitchingDialog() const
+    {
+        return _nextDialog && _curState != State::Idle;
+    }
+
 private:
     enum class State
     {

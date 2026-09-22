@@ -12,5 +12,7 @@ enum class RomBrowserState
     Recents,
     Favorites,
     Statistics,
-    DeleteConfirm
+    DeleteConfirm,
+    Menu,
+    About
 };

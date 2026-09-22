@@ -11,14 +11,14 @@ These controls are available in the rom browser, on top of the standard ones (se
 | X (hold ~half a second) | Toggle completed for the highlighted game |
 | SELECT + A | Launch a random game from the current folder |
 | START (hold ~half a second) | Save a screenshot of both screens (see [Screenshots](#screenshots)) |
-| Heart button (app bar) | Toggle the favorites filter (the heart turns red while active) |
-| Heart button (hold ~half a second) | Open the favorites panel: all favorites from every folder |
-| Check button (app bar) | Toggle the completed filter (the check turns green while active) |
+| Menu button (app bar, the three dots) | Open the menu: recently played, favorites, statistics, delete game and the two filters (see [The menu](#the-menu)) |
 | Light row (display settings) | Set the DS Lite backlight level (4 levels) |
 | Folder button (display settings) | Toggle hiding empty folders |
-| Clock button (app bar) | Open the recently played panel |
-| Clock button (hold ~half a second) | Open the statistics panel |
-| Trash button (app bar) | Delete the highlighted game (X confirms, A or B cancels) |
+
+## The menu
+The app bar has three buttons: back, the menu (three dots) and display settings. The menu opens a sheet with everything the bar used to hold as icons, each with its name: **Recently played**, **Favorites**, **Statistics** and **Delete game** in two columns, and under them the two filters, **Only favorites** and **Only completed**, each saying `on` or `off`. Tap an entry, or highlight it with the d-pad and press A. Picking a panel closes the menu and opens the panel in its place; a filter applies at once and closes the menu. B, or a tap outside the sheet, closes it. No app bar button hides a second action behind a hold any more; the X and START holds in the table above are unchanged.
+
+The small button at the right of the menu's title opens the **about** sheet: Pico Launcher by the LNH team on one side, Enhanced by rasalopa on the other, then the version with the commit it was built from and the repository the build came from, and a cheat sheet of the controls that have no button of their own, three at a time; up and down scroll it. A build made from another repository names that repository there, so you can always tell where a build came from.
 
 ## Jumping by initial
 In a folder with hundreds of games, paging through the list a screen at a time takes a
@@ -29,8 +29,9 @@ R moves to the first game filed under the next initial. L moves to the top of th
 initial, and again to the top of the one before it, so getting back to the start of a long
 run of games sharing an initial does not need a detour.
 
-As you jump, the game count on the top screen briefly shows the initial you landed on, then
-settles back to the count, so it stays easy to see where you are without watching the list.
+As you jump, the initial you landed on shows for a moment at the bottom of the touch screen,
+the same way the screenshot message does, so it stays easy to see where you are without
+watching the list.
 
 Folders and games are stepped through separately, since folders are always listed first.
 Games are grouped by the first character of their file name, which is what the list is
@@ -39,14 +40,11 @@ name starts with an article or a number is filed under that, not under its title
 
 L and R keep paging in the cheats, favorites and recently played lists.
 
-## Game count
-The top-left of the top screen shows how many games the current folder contains (e.g. `12 games`). Only games are counted, not folders or other files.
-
 ## Favorites
 Press X on a highlighted game to mark it as a favorite (press again to unmark). Favorites show a small heart on the top screen when highlighted. The mark belongs to that ROM **file**: moving it to another folder keeps it, renaming it starts over, and a second copy of the same game is marked separately — see [Data storage](#data-storage) if a mark is not where you expect it.
 
 ## Favorites panel
-Hold the heart button in the app bar for about half a second to open a panel listing your favorites from **every** folder, alphabetically, each with its total play time — handy when the collection is spread across many folders. Tap an entry (or highlight it and press A) to jump to that game's folder with the game preselected; press B to close.
+**Favorites** in the menu opens a panel listing your favorites from **every** folder, alphabetically, each with its total play time — handy when the collection is spread across many folders. Tap an entry (or highlight it and press A) to jump to that game's folder with the game preselected; press B to close.
 
 Favorites marked before this feature existed appear in the panel after you toggle them again or launch them once (the panel needs the game's stored path). An entry whose file has moved or is gone still appears, but selecting it does nothing instead of jumping to the card root; re-mark or launch the game from its new location to update it.
 
@@ -54,7 +52,7 @@ Favorites marked before this feature existed appear in the panel after you toggl
 Hold X on a highlighted game for about half a second to mark it as completed (hold again to unmark). Completed games show a small green check on the top screen when highlighted, next to the heart. Like favorites, the mark belongs to the ROM file.
 
 ## Favorites and completed filters
-The heart button in the app bar filters the browser down to favorites; the heart is drawn red while the filter is active. The check button next to it filters down to completed games and turns green while active. With both filters on, only games that are favorite *and* completed remain. The filters apply per folder — folders themselves always stay visible.
+**Only favorites** in the menu filters the browser down to favorites, and **Only completed** to completed games. Each row says `on` while its filter is active, in red and green, and the browser behind it updates as soon as the menu closes. With both filters on, only games that are favorite *and* completed remain. The filters apply per folder — folders themselves always stay visible.
 
 Marks, play counts and play time all belong to the ROM file, so what the top screen shows and what the filter matches are always the same thing (see [GameData.md](GameData.md)). Two copies of a game are marked separately, and a ROM hack no longer inherits its base game's mark. Renaming a ROM outside the launcher starts it over, and games whose file name is longer than 96 bytes cannot be marked at all (accented characters count double).
 
@@ -62,7 +60,7 @@ Marks, play counts and play time all belong to the ROM file, so what the top scr
 Hold SELECT and press A to launch a random game from the folder you are currently viewing. With the favorites filter active, it picks a random favorite. SELECT on its own does nothing, so the DSi brightness shortcut (SELECT + volume) stays free.
 
 ## Launch tracking and play time
-Every launch is recorded automatically. The top-right of the top screen shows the highlighted game's launch count together with its total play time (`3x 2h05`), or with the date it was last played (`3x 16/07`, day/month) when no play time has been recorded yet.
+Every launch is recorded automatically. The launch count and play time used to show at the top-right of the top screen (`3x 2h05`, or `3x · 16 Jul` before any play time was recorded); that text is switched off in this version because the play time overstates, as explained below. The data is still kept. The favorite heart and the completed check now sit above the game's icon, astride the card's edge, where a gold star also marks the most launched game, the one that heads the statistics panel.
 
 Play time is approximate: a session starts when a game is launched and ends the next time the launcher boots. Because of that:
 - Sessions longer than 6 hours are discarded — that was a power-off, not a play session.
@@ -70,10 +68,10 @@ Play time is approximate: a session starts when a game is launched and ends the 
 - A session is lost if the console is powered off without booting back into the launcher.
 
 ## Recently played
-The clock button in the app bar opens a list of up to 20 recently played games, most recent first, each with the date and time it was last played. Tap an entry (or highlight it and press A) to jump to that game's folder with the game preselected. Press B to close the panel.
+**Recently played** in the menu opens a list of up to 20 recently played games, most recent first, each with the date and time it was last played. Tap an entry (or highlight it and press A) to jump to that game's folder with the game preselected. Press B to close the panel.
 
 ## Statistics
-Hold the clock button in the app bar for about half a second to open a summary panel: how many games you have played, favorited and completed, total launches and total play time, your top 3 most launched games, and the last game you played. Press B to close it. A short tap on the clock opens the recently played panel instead.
+**Statistics** in the menu opens a summary panel: a row of four figures with an icon each (games in the folder you are in, played, favorites, completed), your three most launched games with their counts, and the last game you played with its date and time. File names show without their extension there. The launcher's version sits at the top-right of the panel. The version with the commit it was built from shows on the bottom screen while the launcher boots, and at the bottom-right of the theme selector's top screen, for when you report something and need to say which build you have. The total launches and play time line is switched off in this version, for the reason given above. Press B to close it.
 
 ## Screenshots
 Hold START for about half a second to save both screens to `/_pico/screenshots` on your SD card, as BMP files.
@@ -85,11 +83,11 @@ A short message appears at the bottom of the lower screen once the files are on 
 A few things worth knowing:
 - The two screens are recorded a couple of frames apart. The console can only capture one screen at a time, so during a fast animation the two halves of a pair will not match exactly.
 - The screen flashes while the picture is taken. That is the capture, not a fault.
-- The shortcut works in the file browser and in every panel that opens over it (display settings, cheats, favorites, recently played, statistics, delete confirmation). It does not work in the theme selector, which is a separate screen with its own input handling.
+- The shortcut works in the file browser and in every panel that opens over it (the menu, display settings, cheats, favorites, recently played, statistics, delete confirmation). It does not work in the theme selector, which is a separate screen with its own input handling.
 - The hold has to begin while the launcher is running, so a button that was already held down when it started is not read as a request.
 
 ## Deleting games
-The trash button in the app bar deletes the highlighted game. A confirmation sheet opens first: press **X** to confirm, or A or B to cancel. Only games can be deleted, not folders.
+**Delete game** in the menu deletes the highlighted game; the entry is faded while a folder is highlighted. A confirmation sheet opens first: press **X** to confirm, or A or B to cancel. Only games can be deleted, not folders.
 
 Deleting a game also deletes its save file (same name with a `.sav` extension, next to the ROM) and removes the game's entry from `gamedata.json`. Note that saves are matched by name without the extension: if `Game.gba` and `Game.nds` sit in the same folder, they share `Game.sav`, and deleting either game deletes it.
 

@@ -1,5 +1,6 @@
 #include "common.h"
 #include <algorithm>
+#include <ctype.h>
 #include <libtwl/mem/memVram.h>
 #include <libtwl/gfx/gfx.h>
 #include <libtwl/gfx/gfxOam.h>
@@ -13,6 +14,9 @@
 #include "gui/materialDesign.h"
 #include "themes/material/MaterialColorSchemeFactory.h"
 #include "core/math/ColorConverter.h"
+#include "core/mini-printf.h"
+#include "themes/DefaultFontRepository.h"
+#include "Version.h"
 #include "core/math/RgbMixer.h"
 #include "gui/GraphicsContext.h"
 #include "romBrowser/views/ChipView.h"
@@ -24,6 +28,8 @@
 #include "romBrowser/views/recents/RecentsBottomSheetView.h"
 #include "romBrowser/views/statistics/StatisticsBottomSheetView.h"
 #include "romBrowser/views/deleteconfirm/DeleteConfirmBottomSheetView.h"
+#include "romBrowser/views/menu/MenuBottomSheetView.h"
+#include "romBrowser/views/about/AboutBottomSheetView.h"
 #include "romBrowser/views/DisplaySettingsBottomSheetView.h"
 #include "bgm/AudioStreamPlayer.h"
 #include "bgm/BgmService.h"
@@ -34,6 +40,13 @@
 #include "App.h"
 
 #define SPLASH_FRAMES       44
+
+// Display control for the browser, and for the boot page under it: the same
+// mode with every background off, so only the version sprite shows over the
+// white backdrop until the browser takes over.
+#define BROWSER_DISPCNT         0x211F1B
+#define SPLASH_BOTTOM_DISPCNT   (BROWSER_DISPCNT & ~(0x0F << 8))
+#define SPLASH_VERSION_WIDTH    128
 
 App::App(IAppSettingsService& appSettingsService, IBgmService& bgmService, IGameDataService& gameDataService)
     : _mainObjPltt(GFX_PLTT_OBJ_MAIN)
@@ -90,6 +103,63 @@ void App::DisplaySplashScreen() const
     REG_MASTER_BRIGHT_SUB = 0;
 }
 
+// The bottom screen is white from power-on until the browser fades in. This
+// puts the version and build on it meanwhile, small, bottom-right, so a boot
+// says which launcher it is - for the time the theme takes to load, and then
+// for the frames the splash holds. Drawn once here by hand, straight to the
+// hardware, because the main loop and the palette manager's scanline machinery
+// are not running yet; and left untouched by the loop until EndSplashBottom,
+// so the page looks the same for the whole of its time on screen.
+void App::ShowSplashVersion()
+{
+    static DefaultFontRepository sFonts;
+
+    char text[48];
+    FormatLauncherVersion(text, sizeof(text), true);
+
+    _splashVersionLabel = Label2DView::CreateShared(SPLASH_VERSION_WIDTH, 16, 32, sFonts.GetFont(FontType::Medium10));
+    _splashVersionLabel->SetHorizontalAlignment(Alignment::End);
+    _splashVersionLabel->SetPosition(256 - 8 - SPLASH_VERSION_WIDTH, 192 - 8 - 16);
+    _splashVersionLabel->SetBackgroundColor(Rgb<8, 8, 8>(255, 255, 255));
+    _splashVersionLabel->SetForegroundColor(Rgb<8, 8, 8>(110, 112, 120));
+    _splashVersionLabel->InitVram(_mainVramContext);
+    _splashVersionLabel->SetText(text);
+    _splashVersionLabel->VBlank();
+
+    // Static, not a local: Apply copies the rows to palette ram with dma, and
+    // dma cannot read the stack, which lives in dtcm - a local here handed the
+    // sprite a row of garbage and the text came out as a smear of dark pixels.
+    // Row 15 only, since Apply writes every row from the offset up.
+    static SimplePaletteManager sPalette;
+    sPalette.Reset(15);
+    GraphicsContext context
+    {
+        &_mainOam,
+        &sPalette,
+        &_rgb6Palette
+    };
+    _mainOam.Clear();
+    _splashVersionLabel->Draw(context);
+    VBlank::Wait();
+    _mainOam.Apply(GFX_OAM_MAIN);
+    sPalette.Apply(GFX_PLTT_OBJ_MAIN);
+    GFX_PLTT_BG_MAIN[0] = ColorConverter::ToGBGR565(Rgb<8, 8, 8>(255, 255, 255));
+    REG_DISPCNT = SPLASH_BOTTOM_DISPCNT;
+    REG_MASTER_BRIGHT = 0;
+}
+
+// The boot page hands the bottom screen to the browser: backgrounds on, colour
+// 0 the browser's, and master brightness at full white for the fade to start
+// from - the same white the page was, so nothing is seen to change until the
+// browser comes through it.
+void App::EndSplashBottom()
+{
+    _splashBottom = false;
+    GFX_PLTT_BG_MAIN[0] = ColorConverter::ToGBGR565(_theme->GetMaterialColorScheme().inverseOnSurface);
+    REG_DISPCNT = BROWSER_DISPCNT;
+    REG_MASTER_BRIGHT = 0x4010;
+}
+
 void App::LoadTheme()
 {
     ThemeInfoFactory themeInfoFactory;
@@ -125,6 +195,7 @@ void App::Run()
 
     InitVramMapping();
     DisplaySplashScreen();
+    ShowSplashVersion();
     gx_init();
 
     _chipViewVram = ChipView::UploadGraphics(_mainObjVram);
@@ -169,9 +240,11 @@ void App::Run()
 
     RgbMixer::MakeGradientPalette((u16*)GFX_PLTT_BG_MAIN, scrimBlendColor, materialColorScheme.GetColor(md::sys::color::surfaceContainerLow));
 
-    GFX_PLTT_BG_MAIN[0] = ColorConverter::ToGBGR565(materialColorScheme.inverseOnSurface);
+    // Colour 0 stays the boot page's white for now, and the backgrounds stay
+    // off: EndSplashBottom gives both to the browser when the page hands over.
+    GFX_PLTT_BG_MAIN[0] = ColorConverter::ToGBGR565(Rgb<8, 8, 8>(255, 255, 255));
     GFX_PLTT_BG_MAIN[31] = ColorConverter::ToGBGR565(materialColorScheme.scrim);
-    REG_DISPCNT = 0x211F1B;
+    REG_DISPCNT = SPLASH_BOTTOM_DISPCNT;
     REG_BG0HOFS = 0;
     REG_BG0VOFS = 0;
     REG_BG0CNT = 3;
@@ -232,10 +305,14 @@ void App::MainLoop()
             {
                 fadeWaitFrames--;
                 REG_BLDALPHA_SUB = 16;
-                REG_MASTER_BRIGHT = 0x4010;
+                // The bottom screen is the boot page at full brightness; the
+                // white the fade will start from is the page's own.
+                REG_MASTER_BRIGHT = 0;
             }
             else
             {
+                if (_splashBottom)
+                    EndSplashBottom();
                 bool fadeComplete = _fadeAnimator.Update();
                 if (fadeComplete)
                 {
@@ -331,6 +408,26 @@ void App::HandleTrigger(RomBrowserStateTrigger trigger, RomBrowserState newState
             HandleHideDeleteConfirmTrigger();
             break;
         }
+        case RomBrowserStateTrigger::ShowMenu:
+        {
+            HandleShowMenuTrigger();
+            break;
+        }
+        case RomBrowserStateTrigger::HideMenu:
+        {
+            HandleHideMenuTrigger();
+            break;
+        }
+        case RomBrowserStateTrigger::ShowAbout:
+        {
+            HandleShowAboutTrigger();
+            break;
+        }
+        case RomBrowserStateTrigger::HideAbout:
+        {
+            HandleHideAboutTrigger();
+            break;
+        }
         case RomBrowserStateTrigger::Navigate:
         {
             HandleNavigateTrigger();
@@ -343,6 +440,9 @@ void App::HandleTrigger(RomBrowserStateTrigger trigger, RomBrowserState newState
         }
         case RomBrowserStateTrigger::ChangeDisplayMode:
         {
+            // a filter toggled from the menu: the browser rebuilds and the
+            // menu's sheet goes, in that order (see Update)
+            CloseSheetIfLeavingMenu();
             _changeDisplayMode = true;
             break;
         }
@@ -386,6 +486,7 @@ void App::HandleHideDisplaySettingsTrigger()
 
 void App::HandleShowRecentsTrigger()
 {
+    CloseSheetIfLeavingMenu();
     auto recentsViewModel = SharedPtr<RecentsViewModel>::MakeShared(
         &_romBrowserController, GameListKind::Recents);
     auto recentsDialog = RecentsBottomSheetView::CreateShared(
@@ -402,6 +503,7 @@ void App::HandleHideRecentsTrigger()
 
 void App::HandleShowFavoritesTrigger()
 {
+    CloseSheetIfLeavingMenu();
     auto favoritesViewModel = SharedPtr<RecentsViewModel>::MakeShared(
         &_romBrowserController, GameListKind::Favorites);
     auto favoritesDialog = RecentsBottomSheetView::CreateShared(
@@ -418,6 +520,7 @@ void App::HandleHideFavoritesTrigger()
 
 void App::HandleShowStatisticsTrigger()
 {
+    CloseSheetIfLeavingMenu();
     auto statisticsViewModel = SharedPtr<StatisticsViewModel>::MakeShared(&_romBrowserController);
     auto statisticsDialog = StatisticsBottomSheetView::CreateShared(
         std::move(statisticsViewModel), &_theme->GetMaterialColorScheme(), _theme->GetFontRepository());
@@ -433,6 +536,7 @@ void App::HandleHideStatisticsTrigger()
 
 void App::HandleShowDeleteConfirmTrigger()
 {
+    CloseSheetIfLeavingMenu();
     auto deleteConfirmViewModel = SharedPtr<DeleteConfirmViewModel>::MakeShared(&_romBrowserController);
     auto deleteConfirmDialog = DeleteConfirmBottomSheetView::CreateShared(
         std::move(deleteConfirmViewModel), &_theme->GetMaterialColorScheme(), _theme->GetFontRepository());
@@ -444,6 +548,48 @@ void App::HandleHideDeleteConfirmTrigger()
     _dialogPresenter.CloseDialog();
     if (!_dialogPresenter.GetOldFocus())
         _romBrowserBottomScreenView->Focus(_focusManager);
+}
+
+void App::HandleShowMenuTrigger()
+{
+    auto menuViewModel = SharedPtr<MenuViewModel>::MakeShared(&_romBrowserController);
+    auto menuDialog = MenuBottomSheetView::CreateShared(
+        std::move(menuViewModel), &_theme->GetMaterialColorScheme(), _theme->GetFontRepository());
+    menuDialog->SetGraphics(_iconButtonViewVram);
+    _dialogPresenter.ShowDialog(std::move(menuDialog));
+}
+
+void App::HandleShowAboutTrigger()
+{
+    CloseSheetIfLeavingMenu();
+    auto aboutViewModel = SharedPtr<AboutViewModel>::MakeShared(&_romBrowserController);
+    auto aboutDialog = AboutBottomSheetView::CreateShared(
+        std::move(aboutViewModel), &_theme->GetMaterialColorScheme(), _theme->GetFontRepository());
+    _dialogPresenter.ShowDialog(std::move(aboutDialog));
+}
+
+void App::HandleHideAboutTrigger()
+{
+    _dialogPresenter.CloseDialog();
+    if (!_dialogPresenter.GetOldFocus())
+        _romBrowserBottomScreenView->Focus(_focusManager);
+}
+
+void App::HandleHideMenuTrigger()
+{
+    _dialogPresenter.CloseDialog();
+    if (!_dialogPresenter.GetOldFocus())
+        _romBrowserBottomScreenView->Focus(_focusManager);
+}
+
+// An entry picked from the menu takes the menu's sheet with it. Closing it and
+// showing the next sheet in the same frame is fine: the presenter keeps the
+// new one waiting until the old one has slid out, and Update holds input off
+// meanwhile, so nothing can navigate away under a sheet that is still queued.
+void App::CloseSheetIfLeavingMenu()
+{
+    if (_romBrowserController.GetStateMachine().GetPreviousState() == RomBrowserState::Menu)
+        _dialogPresenter.CloseDialog();
 }
 
 void App::HandleNavigateTrigger()
@@ -531,6 +677,41 @@ void App::HandleChangeDisplayModeTrigger(RomBrowserState newState)
         _romBrowserBottomScreenView->Focus(_focusManager);
 }
 
+// Copy the first display character of a UTF-8 file name, so a Chinese folder
+// shows the actual first Han character on an initial jump instead of leaving
+// the string truncated inside a multibyte sequence.
+static void CopyFirstDisplayCharacter(const char* fileName, char* out, u32 outSize)
+{
+    out[0] = 0;
+    if (!fileName || !fileName[0] || outSize < 2)
+        return;
+
+    unsigned char c0 = (unsigned char)fileName[0];
+    if ((c0 & 0x80) == 0)
+    {
+        out[0] = (char)toupper(c0);
+        out[1] = 0;
+    }
+    else if ((c0 & 0xE0) == 0xC0 && fileName[1] && outSize >= 3)
+    {
+        out[0] = fileName[0];
+        out[1] = fileName[1];
+        out[2] = 0;
+    }
+    else if ((c0 & 0xF0) == 0xE0 && fileName[1] && fileName[2] && outSize >= 4)
+    {
+        out[0] = fileName[0];
+        out[1] = fileName[1];
+        out[2] = fileName[2];
+        out[3] = 0;
+    }
+    else
+    {
+        out[0] = '?';
+        out[1] = 0;
+    }
+}
+
 void App::Update()
 {
     // Copying the captured frame out of vram is far too long for vblank, so it
@@ -542,6 +723,30 @@ void App::Update()
     // message is true, and it also puts it safely outside the picture.
     if (_toast)
     {
+        // An L/R jump crosses the list by whole initials, which is easy to lose
+        // your place in, so the letter landed on is said for a moment. The flag
+        // is drained every frame whether or not there is anything to show, so a
+        // jump is never kept to be announced later. It is read here, before
+        // this frame's input, so the jump it sees is last frame's - and by the
+        // end of that frame the browser view had already written the new
+        // selection back into the view model, which is where the name is read.
+        //
+        // Before the screenshot below on purpose: only one message shows at a
+        // time and the newest wins, and of the two the letter is the one that
+        // will be along again.
+        if (_romBrowserController.ConsumeBigStepJump())
+        {
+            const auto& viewModel = _romBrowserController.GetRomBrowserViewModel();
+            int selectedItem = viewModel->GetSelectedItem();
+            if (selectedItem >= 0)
+            {
+                char letter[8];
+                CopyFirstDisplayCharacter(
+                    viewModel->GetFileInfoManager().GetItem(selectedItem).GetFileName(), letter, sizeof(letter));
+                _toast->Show(letter);
+            }
+        }
+
         switch (Screenshot::TakeResult())
         {
             case Screenshot::Result::Saved:
@@ -575,7 +780,8 @@ void App::Update()
     bool isRomBrowserVisible = _romBrowserBottomScreenViewModel.IsRomBrowserVisible();
     if (isRomBrowserVisible && !_exit &&
         curState != RomBrowserState::Launching &&
-        curState != RomBrowserState::GoingToSettingsScreen)
+        curState != RomBrowserState::GoingToSettingsScreen &&
+        !_dialogPresenter.IsSwitchingDialog())
     {
         HandleInput();
     }
@@ -625,22 +831,34 @@ void App::Draw()
 
     if (_topBackground)
         _topBackground->Draw(subGraphicsContext);
-    if (_bottomBackground)
-        _bottomBackground->Draw(mainGraphicsContext);
-
     if (!_changeDisplayMode && _romBrowserBottomScreenViewModel.IsRomBrowserVisible())
     {
         _romBrowserTopScreenView->Draw(subGraphicsContext);
     }
 
-    _dialogPresenter.ApplyClipArea(mainGraphicsContext);
-    if (!_changeDisplayMode)
+    if (_splashBottom)
     {
-        _romBrowserBottomScreenView->Draw(mainGraphicsContext);
+        // The boot page is what ShowSplashVersion put in the hardware oam and
+        // palette, and it stays exactly that until EndSplashBottom: nothing is
+        // drawn on this engine and VBlank leaves its oam and palette alone, so
+        // the page cannot change its look between the theme loading and the
+        // splash holding. The browser is not drawn either: with the
+        // backgrounds off, its sprites would be the only part of it to show.
     }
-    mainGraphicsContext.ResetClipArea();
+    else
+    {
+        if (_bottomBackground)
+            _bottomBackground->Draw(mainGraphicsContext);
 
-    _dialogPresenter.Draw(mainGraphicsContext);
+        _dialogPresenter.ApplyClipArea(mainGraphicsContext);
+        if (!_changeDisplayMode)
+        {
+            _romBrowserBottomScreenView->Draw(mainGraphicsContext);
+        }
+        mainGraphicsContext.ResetClipArea();
+
+        _dialogPresenter.Draw(mainGraphicsContext);
+    }
 
     // Last, so nothing the browser draws afterwards can land on top of it. And
     // not at all while a screenshot has this engine: on the frame it is actually
@@ -672,7 +890,9 @@ void App::VBlank()
     _screenshot.VBlankBegin();
     _inputProvider.Sample();
     _inputRepeater.Update();
-    _mainOam.Apply(GFX_OAM_MAIN);
+    // The main engine keeps the boot page as drawn until the fade begins.
+    if (!_splashBottom)
+        _mainOam.Apply(GFX_OAM_MAIN);
     _subOam.Apply(GFX_OAM_SUB);
     _subObjPltt.Apply(GFX_PLTT_OBJ_SUB);
 
@@ -687,6 +907,11 @@ void App::VBlank()
     // other screen's - on the first of those frames nothing has been mirrored
     // yet, since that happens further down this same function. Wider on
     // purpose, for the reason in Draw: too narrow writes into a saved image.
+    // Runs during the boot page too: its scheme is empty then, so it writes no
+    // palette row and leaves the page's own, but it is what arms the scanline
+    // walk the vcount irq performs - which fires from the first frame when the
+    // theme selector left the match line enabled, and would otherwise walk a
+    // null scheme and hang.
     if (!_screenshot.IsMirroringMainEngine())
         _mainObjPltt.VBlank();
 

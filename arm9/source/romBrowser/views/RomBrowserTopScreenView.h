@@ -1,5 +1,6 @@
 #pragma once
 #include "core/SharedPtr.h"
+#include "core/String.h"
 #include "gui/views/ViewContainer.h"
 #include "BannerView.h"
 #include "gui/views/LabelView.h"
@@ -39,7 +40,6 @@ private:
     SharedPtr<RomBrowserViewModel> _viewModel;
     const IThemeFileIconFactory* _themeFileIconFactory;
     SharedPtr<BannerView> _fileInfoView;
-    SharedPtr<Label2DView> _gameCountLabel;
     SharedPtr<Label2DView> _launchInfoLabel;
     IGameDataService* _gameDataService;
     std::unique_ptr<FileIcon> _selectedFileIcon;
@@ -49,23 +49,24 @@ private:
     bool _coverGraphicsUploaded = false;
     bool _showCover;
     Point _coverPosition;
-    Point _gameCountPosition;
-    bool _gameCountHidden = false;
     Point _launchInfoPosition;
     bool _launchInfoHidden = false;
     u32 _heartVramOffset = 0;
     u32 _checkVramOffset = 0;
+    u32 _starVramOffset = 0;
     u32 _chipVramOffset = 0;
     bool _selectedFavorite = false;
     bool _selectedCompleted = false;
+    bool _selectedStarred = false;
+    bool _launchInfoCentered = false;
+    bool _launchInfoBare = false;
+    // The most launched game's file name, refreshed when the game data changes.
+    String<char, 96> _mostPlayedFileName;
+    u32 _mostPlayedVersion = 0;
+    bool _mostPlayedKnown = false;
     int _lastGameDataItem = -1;
     u32 _lastGameDataVersion = 0;
     const MaterialColorScheme* _materialColorScheme;
-    // On an L/R jump the game-count chip briefly shows the letter landed on, so
-    // the jump is not disorienting; _gameCountText is the count to put back after
-    // the hold, and _letterHoldFrames counts it down.
-    char _gameCountText[32] = {};
-    int _letterHoldFrames = 0;
 
     RomBrowserTopScreenView(SharedPtr<RomBrowserViewModel> viewModel,
         const RomBrowserDisplayMode* displayMode,
@@ -75,5 +76,5 @@ private:
         const MaterialColorScheme* materialColorScheme);
 
     void DrawChip(GraphicsContext& graphicsContext, int x, int y, int width, u32 paletteRow);
-    void UpdateSortLetterChip(int selectedItem);
+    void RefreshMostPlayed(u32 gameDataVersion);
 };
